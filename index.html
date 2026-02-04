@@ -16,7 +16,7 @@
 <body class="p-6">
 
     <div id="topAlert" class="hidden max-w-7xl mx-auto mb-6 p-4 rounded-xl bg-blue-900/50 border border-blue-500 text-center">
-        <p class="font-bold text-white">🔔 CEO NOTIFICATION: Request <span id="pendingReqCode" class="text-blue-300"></span> is being Optimized.</p>
+        <p class="font-bold text-white">🔔 CEO NOTIFICATION: Request <span id="pendingReqCode" class="text-blue-300"></span> Status Updated.</p>
     </div>
 
     <header class="text-center mb-8">
@@ -71,7 +71,6 @@
             <div class="box-style text-center border-dashed border-slate-700">
                 <h3 class="font-bold mb-4 text-sm text-blue-400">1. PAYMENT PORTAL</h3>
                 <div id="qrBox" class="bg-white p-2 inline-block rounded-xl mb-4 shadow-lg"></div>
-                <p class="text-[10px] text-slate-500 mb-4 font-mono">UPI: sayyadsharrin0@okaxis</p>
                 <button onclick="sendWhatsApp()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold text-sm transition-all shadow-xl">
                     I'VE PAID - SEND APPROVAL REQUEST
                 </button>
@@ -79,11 +78,18 @@
 
             <div class="box-style text-center border-2 border-yellow-600/20">
                 <h3 class="font-bold mb-4 text-sm text-yellow-500 uppercase tracking-widest">2. CEO ADMIN PANEL</h3>
-                <input type="password" id="adminKey" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center mb-4 text-white font-mono" placeholder="••••••••••••">
-                <button onclick="approveRequest()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-black font-black py-4 rounded-xl text-sm uppercase transition-all shadow-xl">
-                    APPROVE & UNLOCK CODE
-                </button>
-                <button id="dlBtn" onclick="downloadReport()" class="hidden w-full mt-4 bg-white text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-all">
+                <input type="password" id="adminKey" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center mb-4 text-white font-mono" placeholder="Enter Admin Secret Code">
+                
+                <div class="flex gap-4">
+                    <button onclick="handleRequest('APPROVE')" class="w-1/2 bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl text-sm uppercase transition-all shadow-xl">
+                        APPROVE ✅
+                    </button>
+                    <button onclick="handleRequest('REJECT')" class="w-1/2 bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl text-sm uppercase transition-all shadow-xl">
+                        REJECT ❌
+                    </button>
+                </div>
+
+                <button id="dlBtn" onclick="downloadReport()" class="hidden w-full mt-4 bg-white text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2">
                     📥 DOWNLOAD AUDIT REPORT (PDF)
                 </button>
             </div>
@@ -92,7 +98,7 @@
         <div id="historyPanel" class="hidden box-style overflow-x-auto border-t-2 border-blue-500 shadow-2xl">
             <h3 class="font-bold mb-4 text-xs accent-green uppercase tracking-tighter">Business Transaction Logs</h3>
             <table class="w-full text-left text-[11px] font-mono">
-                <thead class="text-slate-500 border-b border-slate-800">
+                <thead class="text-slate-500 border-b border-slate-700">
                     <tr><th class="p-2">TIMESTAMP</th><th class="p-2">REQUEST ID</th><th class="p-2">COMMISSION</th><th class="p-2">STATUS</th></tr>
                 </thead>
                 <tbody id="historyData"></tbody>
@@ -107,7 +113,6 @@
     <script>
         const THE_KEY = "rubinaramjan@14";
         let reqID = "REQ-" + Math.floor(1000 + Math.random() * 9000) + "-AX";
-        
         document.getElementById('displayReqCode').innerText = reqID;
 
         document.getElementById('userInput').addEventListener('input', function(e) {
@@ -117,12 +122,10 @@
                 const save = (waste * 0.75).toFixed(2);
                 const comm = (save * 0.35).toFixed(2);
                 const kwh = (val.length * 0.012).toFixed(3);
-
                 document.getElementById('bill').innerText = '₹' + waste;
                 document.getElementById('savings').innerText = '₹' + save;
                 document.getElementById('share').innerText = '₹' + comm;
                 document.getElementById('power').innerText = kwh + ' kWh';
-                
                 const upi = `upi://pay?pa=sayyadsharrin0@okaxis&pn=Sharrin%20Sayyad&am=${comm}&cu=INR`;
                 document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" alt="QR">`;
                 document.getElementById('currentLang').innerText = "LANG DETECTED";
@@ -135,61 +138,50 @@
             window.open(`https://wa.me/9096530829?text=${encodeURIComponent(msg)}`);
         }
 
-        function approveRequest() {
+        function handleRequest(action) {
             const key = document.getElementById('adminKey').value;
-            if(key === THE_KEY) {
+            if(key !== THE_KEY) {
+                alert("ACCESS DENIED: Incorrect Admin Key.");
+                return;
+            }
+
+            if(action === 'APPROVE') {
                 document.getElementById('lockIcon').classList.add('hidden');
                 document.getElementById('loader').classList.remove('hidden');
-                document.getElementById('lockStatus').innerText = "AI OPTIMIZING... PLEASE WAIT";
+                document.getElementById('lockStatus').innerText = "AI OPTIMIZING...";
                 
                 setTimeout(() => {
                     document.getElementById('lockOverlay').style.display = 'none';
-                    document.getElementById('optimizedCode').innerText = "// ECOSTACK AI OPTIMIZATION SUCCESS\n// Request ID: " + reqID + "\n// Global Efficiency Standards Met\n\nfunction ecoOptimized() {\n  // Redundant loops removed\n  // Memory leak fixed\n  return '65% Energy Saved';\n}";
-                    document.getElementById('optimizedCode').classList.remove('text-slate-600');
+                    document.getElementById('optimizedCode').innerText = "// SUCCESS: OPTIMIZED BY ECOSTACK AI\n// Request ID: " + reqID + "\n\nfunction ecoOptimized() {\n  return '65% Energy Saved';\n}";
                     document.getElementById('optimizedCode').classList.add('text-green-400');
                     document.getElementById('dlBtn').classList.remove('hidden');
                     document.getElementById('historyPanel').classList.remove('hidden');
-                    document.getElementById('topAlert').classList.remove('hidden');
-                    document.getElementById('pendingReqCode').innerText = reqID;
-                    
-                    const now = new Date();
-                    const row = `<tr class="border-b border-slate-800/50 text-slate-300"><td class="p-2">${now.toLocaleString()}</td><td class="p-2 text-blue-400 font-bold">${reqID}</td><td class="p-2 text-green-400 font-bold">${document.getElementById('share').innerText}</td><td class="p-2 text-green-500 italic">APPROVED</td></tr>`;
-                    document.getElementById('historyData').innerHTML += row;
+                    addLog('APPROVED');
                 }, 3500);
             } else {
-                alert("ACCESS DENIED: Incorrect Admin Key.");
+                document.getElementById('lockStatus').innerText = "REQUEST REJECTED ❌";
+                document.getElementById('lockStatus').classList.add('text-red-500');
+                alert("Request ID: " + reqID + " has been REJECTED.");
+                addLog('REJECTED');
             }
+        }
+
+        function addLog(status) {
+            const now = new Date();
+            const color = status === 'APPROVED' ? 'text-green-400' : 'text-red-400';
+            const row = `<tr class="border-b border-slate-800/50"><td class="p-2">${now.toLocaleString()}</td><td class="p-2 text-blue-400 font-bold">${reqID}</td><td class="p-2 font-bold">${document.getElementById('share').innerText}</td><td class="p-2 ${color} italic font-bold">${status}</td></tr>`;
+            document.getElementById('historyData').innerHTML += row;
+            document.getElementById('topAlert').classList.remove('hidden');
+            document.getElementById('pendingReqCode').innerText = reqID;
         }
 
         function downloadReport() {
             const date = new Date().toLocaleString();
-            const report = `
-ECOSTACK AI - OFFICIAL AUDIT REPORT
-====================================
-STATUS: PAYMENT VERIFIED & OPTIMIZED
-====================================
-Request ID: ${reqID}
-Date/Time: ${date}
-CEO Admin: Sharrin Sayyad
-
-FINANCIAL SUMMARY:
------------------
-Total Energy Waste: ${document.getElementById('bill').innerText}
-Energy Saved: ${document.getElementById('power').innerText} kWh
-Total Savings: ${document.getElementById('savings').innerText}
-Service Fee (35%): ${document.getElementById('share').innerText}
-
-OPTIMIZATION RESULT:
--------------------
-Original code analyzed for carbon footprint and memory efficiency. 
-New optimized code generated successfully with 65% reduction in CPU cycles.
-
---- END OF REPORT ---
-            `;
+            const report = `ECOSTACK AI REPORT\nID: ${reqID}\nDate: ${date}\nPayment: ${document.getElementById('share').innerText}\nStatus: APPROVED\nEnergy Saved: ${document.getElementById('power').innerText} kWh`;
             const blob = new Blob([report], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
-            link.download = `EcoStack_Audit_${reqID}.txt`;
+            link.download = `Report_${reqID}.txt`;
             link.click();
         }
     </script>

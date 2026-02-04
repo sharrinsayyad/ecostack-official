@@ -11,157 +11,136 @@
         .accent-green { color: #22c55e; }
         .loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #22c55e; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .hidden-panel { display: none; }
     </style>
 </head>
 <body class="p-6">
 
-    <div id="topAlert" class="hidden max-w-7xl mx-auto mb-6 p-4 rounded-xl bg-blue-900/50 border border-blue-500 text-center">
-        <p class="font-bold text-white">🔔 CEO NOTIFICATION: Request <span id="pendingReqCode" class="text-blue-300"></span> Status Updated.</p>
-    </div>
-
     <header class="text-center mb-8">
-        <h1 class="text-4xl font-black accent-green tracking-tight">ECOSTACK AI</h1>
-        <p class="text-slate-400 text-xs uppercase tracking-widest">Global Energy-Efficient Code Auditor</p>
+        <h1 class="text-3xl font-black accent-green tracking-tight">ECOSTACK AI</h1>
+        <p class="text-slate-400 text-[10px] uppercase tracking-[0.3em]">Global Code Audit Engine</p>
     </header>
 
     <div class="max-w-7xl mx-auto space-y-6">
         
         <div class="grid md:grid-cols-2 gap-6">
             <div class="box-style">
-                <h2 class="font-bold mb-2 text-red-400 flex justify-between">
-                    <span>AUDIT CODE (WORST)</span>
-                    <span id="currentLang" class="text-[10px] text-slate-500 bg-slate-800 px-2 py-1 rounded">DETECTING...</span>
-                </h2>
-                <textarea id="userInput" class="w-full h-72 bg-slate-900 p-4 font-mono text-xs border border-slate-700 rounded focus:border-red-500 focus:outline-none" placeholder="Paste user code here..."></textarea>
+                <h2 class="font-bold mb-2 text-red-400 text-sm">AUDIT CODE (INPUT)</h2>
+                <textarea id="userInput" class="w-full h-64 bg-slate-900 p-4 font-mono text-xs border border-slate-700 rounded focus:outline-none" placeholder="Paste messy code here..."></textarea>
             </div>
             <div class="box-style relative">
-                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center rounded-xl z-20 text-center p-4">
-                    <div id="lockIcon" class="text-4xl mb-2">🔒</div>
+                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center rounded-xl z-10 text-center">
+                    <div id="lockIcon" class="text-3xl mb-2">🔒</div>
                     <div id="loader" class="hidden loading-spinner mb-4"></div>
-                    <p id="lockStatus" class="font-bold text-white uppercase tracking-wider">Locked: Waiting for Approval</p>
-                    <p class="text-[10px] text-slate-500 mt-2 font-mono">UNIQUE REQ ID: <span id="displayReqCode" class="text-blue-400 font-bold"></span></p>
+                    <p id="lockStatus" class="font-bold text-xs">Waiting for CEO Approval</p>
+                    <p class="text-[10px] text-slate-500 mt-2">ID: <span id="displayReqCode" class="text-blue-400"></span></p>
                 </div>
-                <h2 class="font-bold mb-2 text-green-400">OPTIMIZED AI OUTPUT</h2>
-                <div id="optimizedCode" class="w-full h-72 bg-slate-900 p-4 font-mono text-xs overflow-auto text-slate-600 italic">
-                    // Content encrypted until CEO approves the payment...
+                <h2 class="font-bold mb-2 text-green-400 text-sm">OPTIMIZED OUTPUT</h2>
+                <div id="optimizedCode" class="w-full h-64 bg-slate-900 p-4 font-mono text-xs overflow-auto text-slate-600 italic">
+                    // Encrypted...
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div class="box-style border-b-4 border-red-500">
-                <p class="text-[10px] text-slate-400 uppercase font-black">Worst Bill Waste</p>
-                <p id="bill" class="text-xl font-bold">₹0.00</p>
+            <div class="box-style border-b-2 border-red-500 py-4">
+                <p class="text-[9px] text-slate-500 uppercase">Worst Bill</p>
+                <p id="bill" class="text-lg font-bold">₹0.00</p>
             </div>
-            <div class="box-style border-b-4 border-blue-500">
-                <p class="text-[10px] text-slate-400 uppercase font-black">Total Savings</p>
-                <p id="savings" class="text-xl font-bold">₹0.00</p>
+            <div class="box-style border-b-2 border-blue-500 py-4">
+                <p class="text-[9px] text-slate-500 uppercase">Savings</p>
+                <p id="savings" class="text-lg font-bold">₹0.00</p>
             </div>
-            <div class="box-style border-b-4 border-green-500 bg-green-900/10">
-                <p class="text-[10px] text-green-500 uppercase font-black">Our 35% Commission</p>
-                <p id="share" class="text-2xl font-black text-green-400">₹0.00</p>
+            <div class="box-style border-b-2 border-green-500 py-4 bg-green-900/5">
+                <p class="text-[9px] text-green-500 uppercase">35% Share</p>
+                <p id="share" class="text-lg font-bold text-green-400">₹0.00</p>
             </div>
-            <div class="box-style border-b-4 border-yellow-500">
-                <p class="text-[10px] text-slate-400 uppercase font-black">Energy Waste</p>
-                <p id="power" class="text-xl font-bold">-- kWh</p>
+            <div class="box-style border-b-2 border-yellow-500 py-4">
+                <p class="text-[9px] text-slate-500 uppercase">Power</p>
+                <p id="power" class="text-lg font-bold">-- kWh</p>
             </div>
         </div>
 
         <div class="grid md:grid-cols-2 gap-6">
-            <div class="box-style text-center border-dashed border-slate-700">
-                <h3 class="font-bold mb-4 text-sm text-blue-400">1. PAYMENT PORTAL</h3>
-                <div id="qrBox" class="bg-white p-2 inline-block rounded-xl mb-4 shadow-lg"></div>
-                <button onclick="sendWhatsApp()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-xl font-bold text-sm transition-all shadow-xl">
-                    I'VE PAID - SEND APPROVAL REQUEST
-                </button>
+            <div class="box-style text-center">
+                <h3 class="font-bold mb-4 text-xs">PAYMENT & REQUEST</h3>
+                <div id="qrBox" class="bg-white p-2 inline-block rounded mb-4 shadow-lg"></div>
+                <button onclick="sendWhatsApp()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase">I've Paid - Request Approval</button>
             </div>
 
-            <div class="box-style text-center border-2 border-yellow-600/20">
-                <h3 class="font-bold mb-4 text-sm text-yellow-500 uppercase tracking-widest">2. CEO ADMIN PANEL</h3>
-                <input type="password" id="adminKey" class="w-full bg-slate-900 border border-slate-700 p-4 rounded-xl text-center mb-4 text-white font-mono" placeholder="Enter Admin Secret Code">
+            <div class="box-style">
+                <h3 class="font-bold mb-4 text-xs text-yellow-500 text-center uppercase">CEO Login</h3>
+                <input type="password" id="adminKey" oninput="checkKey()" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-center text-sm font-mono" placeholder="Enter Admin Code">
                 
-                <div class="flex gap-4">
-                    <button onclick="handleRequest('APPROVE')" class="w-1/2 bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl text-sm uppercase transition-all shadow-xl">
-                        APPROVE ✅
-                    </button>
-                    <button onclick="handleRequest('REJECT')" class="w-1/2 bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl text-sm uppercase transition-all shadow-xl">
-                        REJECT ❌
-                    </button>
+                <div id="adminControls" class="hidden-panel mt-6 pt-6 border-t border-slate-700">
+                    <div class="flex gap-4 mb-4">
+                        <button onclick="handleRequest('APPROVE')" class="w-1/2 bg-green-600 text-white font-bold py-3 rounded-xl text-xs uppercase">Approve ✅</button>
+                        <button onclick="handleRequest('REJECT')" class="w-1/2 bg-red-600 text-white font-bold py-3 rounded-xl text-xs uppercase">Reject ❌</button>
+                    </div>
+                    <button id="dlBtn" onclick="downloadReport()" class="hidden w-full bg-white text-black py-2 rounded-xl text-xs font-bold mb-4">Download PDF Report</button>
+                    
+                    <div id="historyPanel" class="mt-4 bg-black/30 p-2 rounded-lg max-h-32 overflow-auto">
+                        <p class="text-[10px] text-slate-500 mb-2 uppercase font-bold">Audit Logs</p>
+                        <table class="w-full text-left text-[9px] font-mono">
+                            <tbody id="historyData"></tbody>
+                        </table>
+                    </div>
                 </div>
-
-                <button id="dlBtn" onclick="downloadReport()" class="hidden w-full mt-4 bg-white text-black py-3 rounded-xl font-bold flex items-center justify-center gap-2">
-                    📥 DOWNLOAD AUDIT REPORT (PDF)
-                </button>
             </div>
-        </div>
-
-        <div id="historyPanel" class="hidden box-style overflow-x-auto border-t-2 border-blue-500 shadow-2xl">
-            <h3 class="font-bold mb-4 text-xs accent-green uppercase tracking-tighter">Business Transaction Logs</h3>
-            <table class="w-full text-left text-[11px] font-mono">
-                <thead class="text-slate-500 border-b border-slate-700">
-                    <tr><th class="p-2">TIMESTAMP</th><th class="p-2">REQUEST ID</th><th class="p-2">COMMISSION</th><th class="p-2">STATUS</th></tr>
-                </thead>
-                <tbody id="historyData"></tbody>
-            </table>
         </div>
     </div>
 
-    <footer class="mt-12 text-center text-slate-700 text-[10px] font-mono uppercase tracking-[0.2em] pb-10">
-        Proprietary Engine &copy; 2026 Sharrin Sayyad | ECOSTACK AI Global
-    </footer>
-
     <script>
         const THE_KEY = "rubinaramjan@14";
-        let reqID = "REQ-" + Math.floor(1000 + Math.random() * 9000) + "-AX";
+        let reqID = "REQ-" + Math.floor(1000 + Math.random() * 9000);
         document.getElementById('displayReqCode').innerText = reqID;
+
+        // Unlock Admin Panel as you type
+        function checkKey() {
+            const val = document.getElementById('adminKey').value;
+            if(val === THE_KEY) {
+                document.getElementById('adminControls').style.display = 'block';
+            } else {
+                document.getElementById('adminControls').style.display = 'none';
+            }
+        }
 
         document.getElementById('userInput').addEventListener('input', function(e) {
             const val = e.target.value;
             if(val.length > 5) {
-                const waste = (val.length * 0.62).toFixed(2);
-                const save = (waste * 0.75).toFixed(2);
+                const waste = (val.length * 0.5).toFixed(2);
+                const save = (waste * 0.7).toFixed(2);
                 const comm = (save * 0.35).toFixed(2);
-                const kwh = (val.length * 0.012).toFixed(3);
+                const kwh = (val.length * 0.01).toFixed(3);
                 document.getElementById('bill').innerText = '₹' + waste;
                 document.getElementById('savings').innerText = '₹' + save;
                 document.getElementById('share').innerText = '₹' + comm;
                 document.getElementById('power').innerText = kwh + ' kWh';
                 const upi = `upi://pay?pa=sayyadsharrin0@okaxis&pn=Sharrin%20Sayyad&am=${comm}&cu=INR`;
-                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" alt="QR">`;
-                document.getElementById('currentLang').innerText = "LANG DETECTED";
+                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(upi)}" alt="QR">`;
             }
         });
 
         function sendWhatsApp() {
             const amt = document.getElementById('share').innerText;
-            const msg = `ECOSTACK AI ALERT:\n--------------------\nRequest ID: ${reqID}\nPayment Done: ${amt}\n\nCEO Ma'am, please approve my optimization request.`;
+            const msg = `ECOSTACK AI ALERT:\nID: ${reqID}\nPaid: ${amt}\n\nCEO Ma'am, please approve!`;
             window.open(`https://wa.me/9096530829?text=${encodeURIComponent(msg)}`);
         }
 
         function handleRequest(action) {
-            const key = document.getElementById('adminKey').value;
-            if(key !== THE_KEY) {
-                alert("ACCESS DENIED: Incorrect Admin Key.");
-                return;
-            }
-
             if(action === 'APPROVE') {
                 document.getElementById('lockIcon').classList.add('hidden');
                 document.getElementById('loader').classList.remove('hidden');
                 document.getElementById('lockStatus').innerText = "AI OPTIMIZING...";
-                
                 setTimeout(() => {
                     document.getElementById('lockOverlay').style.display = 'none';
-                    document.getElementById('optimizedCode').innerText = "// SUCCESS: OPTIMIZED BY ECOSTACK AI\n// Request ID: " + reqID + "\n\nfunction ecoOptimized() {\n  return '65% Energy Saved';\n}";
+                    document.getElementById('optimizedCode').innerText = "// SUCCESS: OPTIMIZED\n// ID: " + reqID + "\n\nfunction efficiency() { return true; }";
                     document.getElementById('optimizedCode').classList.add('text-green-400');
                     document.getElementById('dlBtn').classList.remove('hidden');
-                    document.getElementById('historyPanel').classList.remove('hidden');
                     addLog('APPROVED');
-                }, 3500);
+                }, 3000);
             } else {
-                document.getElementById('lockStatus').innerText = "REQUEST REJECTED ❌";
-                document.getElementById('lockStatus').classList.add('text-red-500');
-                alert("Request ID: " + reqID + " has been REJECTED.");
+                alert("Request Rejected.");
                 addLog('REJECTED');
             }
         }
@@ -169,16 +148,13 @@
         function addLog(status) {
             const now = new Date();
             const color = status === 'APPROVED' ? 'text-green-400' : 'text-red-400';
-            const row = `<tr class="border-b border-slate-800/50"><td class="p-2">${now.toLocaleString()}</td><td class="p-2 text-blue-400 font-bold">${reqID}</td><td class="p-2 font-bold">${document.getElementById('share').innerText}</td><td class="p-2 ${color} italic font-bold">${status}</td></tr>`;
+            const row = `<tr class="border-b border-slate-800"><td class="py-1">${reqID}</td><td class="py-1 ${color}">${status}</td></tr>`;
             document.getElementById('historyData').innerHTML += row;
-            document.getElementById('topAlert').classList.remove('hidden');
-            document.getElementById('pendingReqCode').innerText = reqID;
         }
 
         function downloadReport() {
-            const date = new Date().toLocaleString();
-            const report = `ECOSTACK AI REPORT\nID: ${reqID}\nDate: ${date}\nPayment: ${document.getElementById('share').innerText}\nStatus: APPROVED\nEnergy Saved: ${document.getElementById('power').innerText} kWh`;
-            const blob = new Blob([report], { type: 'text/plain' });
+            const content = `ECOSTACK AI REPORT\nID: ${reqID}\nStatus: APPROVED\nAmt: ${document.getElementById('share').innerText}`;
+            const blob = new Blob([content], { type: 'text/plain' });
             const link = document.createElement('a');
             link.href = window.URL.createObjectURL(blob);
             link.download = `Report_${reqID}.txt`;

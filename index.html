@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ECOSTACK AI</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: black; color: #22c55e; font-family: monospace; }
+        .neon-border { border: 1px solid #064e3b; }
+    </style>
+</head>
+<body class="p-6 flex flex-col items-center">
+    <div class="mt-10 text-center">
+        <h1 class="text-4xl font-bold tracking-tighter">ECOSTACK AI</h1>
+        <p class="text-[10px] tracking-[0.5em] text-green-900">GLOBAL AUDIT SYSTEM</p>
+    </div>
+
+    <div class="mt-10 w-full max-w-sm space-y-4">
+        <button onclick="handlePayment()" class="w-full bg-green-600 text-black font-bold py-4 rounded hover:bg-green-500">
+            START GLOBAL AUDIT / PAY 35% FEE
+        </button>
+
+        <div id="qrBox" class="hidden bg-white p-4 text-center rounded shadow-lg">
+            <p class="text-black font-bold mb-2">SCAN QR TO PROCEED</p>
+            <img id="qrImg" src="" class="mx-auto w-48 h-48">
+            <p class="text-black text-[10px] mt-2 font-bold text-red-600">UPI: 9096530829@okbizaxis</p>
+        </div>
+
+        <button onclick="downloadPDF()" class="w-full border border-green-900 py-3 rounded text-green-500 font-bold">
+            DOWNLOAD AUDIT PDF
+        </button>
+    </div>
+
+    <div class="mt-20 w-full max-w-sm border-t border-green-900 pt-4 text-center">
+        <p class="text-[10px] italic text-green-900">CEO LOGIN:</p>
+        <input type="password" id="pass" placeholder="ENTER PASSCODE" class="w-full bg-transparent border border-green-900 p-2 text-green-500 text-center focus:outline-none rounded mt-2">
+        <p id="welcome" class="hidden text-green-400 mt-4 animate-bounce font-bold">WELCOME CEO RUBINA</p>
+    </div>
+
+    <script>
+        function handlePayment() {
+            const upi = "upi://pay?pa=9096530829@okbizaxis&pn=EcoStack%20AI&cu=INR";
+            if (/iPhone|Android/i.test(navigator.userAgent)) {
+                window.location.href = upi;
+            } else {
+                document.getElementById('qrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upi)}`;
+                document.getElementById('qrBox').classList.toggle('hidden');
+            }
+        }
+
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            const id = "ESTK-" + Math.floor(Math.random()*900000);
+            doc.text("ECOSTACK AI - AUDIT REPORT", 20, 20);
+            doc.text("-------------------------", 20, 30);
+            doc.text("Audit ID: " + id, 20, 45);
+            doc.text("Fee Status: 35% Payment Required", 20, 55);
+            doc.text("System: Verified", 20, 65);
+            doc.save("Audit_Report.pdf");
+        }
+
+        document.getElementById('pass').addEventListener('input', function(e) {
+            if(e.target.value === 'Ramjanrubina@14') {
+                document.getElementById('welcome').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

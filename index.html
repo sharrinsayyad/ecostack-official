@@ -3,59 +3,149 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - Official CEO Dashboard</title>
+    <title>ECOSTACK AI - CEO Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
-        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(34, 197, 94, 0.2); }
-        .accent-green { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
-        .neon-border { border: 1px solid #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
-        .btn-glow:hover { box-shadow: 0 0 25px rgba(34, 197, 94, 0.4); transform: scale(1.02); }
+        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
+        .box-style { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
+        .accent-green { color: #22c55e; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-6">
 
-    <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
-        <div>
-            <h1 class="text-4xl font-black accent-green tracking-tighter">ECOSTACK AI</h1>
-            <p class="text-slate-400 text-sm italic">Real-Time Global Code Audit & Carbon Neutrality Logic</p>
-        </div>
-        <div class="flex gap-4">
-            <div class="glass px-4 py-2 rounded-xl text-center">
-                <p class="text-[10px] uppercase text-slate-500">System Status</p>
-                <p class="text-xs text-green-400 font-bold">● AI CORE ACTIVE</p>
-            </div>
-            <div class="glass px-4 py-2 rounded-xl text-center">
-                <p class="text-[10px] uppercase text-slate-500">Current Rate</p>
-                <p class="text-xs text-blue-400 font-bold">Global API Linked</p>
-            </div>
-        </div>
+    <header class="text-center mb-8">
+        <h1 class="text-3xl font-bold accent-green">ECOSTACK AI</h1>
+        <p class="text-slate-400">Real-Time Code Analysis & Optimization</p>
     </header>
 
-    <main class="max-w-7xl mx-auto space-y-10">
+    <div class="max-w-7xl mx-auto space-y-6">
         
-        <div class="grid md:grid-cols-2 gap-8">
-            <div class="glass p-6 rounded-[2rem] neon-border">
-                <h2 class="text-lg font-bold mb-4 flex items-center text-red-400">
-                    <span class="mr-2">📉</span> AUDIT CODE (WORST)
-                </h2>
-                <textarea id="userInput" class="w-full h-80 bg-black/40 border border-slate-800 rounded-2xl p-5 text-sm font-mono focus:border-red-500 focus:outline-none transition-all" placeholder="Paste user code here... AI will analyze waste in real-time."></textarea>
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="box-style">
+                <h2 class="font-bold mb-2 text-red-400">AUDIT CODE (INPUT)</h2>
+                <textarea id="userInput" class="w-full h-64 bg-slate-900 p-4 font-mono text-sm border border-slate-700 rounded focus:outline-none" placeholder="Paste messy code here..."></textarea>
             </div>
-
-            <div class="glass p-6 rounded-[2rem] relative overflow-hidden">
-                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/98 flex flex-col items-center justify-center z-20 text-center p-6">
-                    <div class="text-5xl mb-4">🔐</div>
-                    <h3 class="text-xl font-bold mb-2 text-white">Encrypted Output</h3>
-                    <p class="text-sm text-slate-500 max-w-xs">Pay 35% commission and enter Admin Code to unlock the optimized AI version.</p>
+            <div class="box-style relative">
+                <div id="lockOverlay" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center rounded-xl z-10 text-center">
+                    <span class="text-3xl mb-2">🔒</span>
+                    <p class="font-bold">Optimized Code Locked</p>
+                    <p class="text-xs text-slate-500">Waiting for Admin Approval</p>
                 </div>
-                <h2 class="text-lg font-bold mb-4 flex items-center text-green-400">
-                    <span class="mr-2">💎</span> OPTIMIZED BY AI
-                </h2>
-                <div id="optimizedCode" class="w-full h-80 bg-black/20 border border-slate-900 rounded-2xl p-5 text-sm font-mono text-slate-600 overflow-auto italic">
-                    // Optimized code will appear here...
+                <h2 class="font-bold mb-2 text-green-400">OPTIMIZED CODE (OUTPUT)</h2>
+                <div id="optimizedCode" class="w-full h-64 bg-slate-900 p-4 font-mono text-sm overflow-auto text-slate-500 italic">
+                    // Optimized version will appear here after approval...
                 </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div class="glass p-6
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="box-style border-b-4 border-red-500">
+                <p class="text-xs text-slate-400 font-bold uppercase">Light Bill Waste</p>
+                <p id="bill" class="text-xl font-bold mt-1">₹0.00</p>
+            </div>
+            <div class="box-style border-b-4 border-blue-500">
+                <p class="text-xs text-slate-400 font-bold uppercase">Total Savings</p>
+                <p id="savings" class="text-xl font-bold mt-1">₹0.00</p>
+            </div>
+            <div class="box-style border-b-4 border-green-500">
+                <p class="text-xs text-slate-400 font-bold uppercase text-green-400">Our 35% Share</p>
+                <p id="share" class="text-xl font-bold mt-1 text-green-400">₹0.00</p>
+            </div>
+            <div class="box-style border-b-4 border-yellow-500">
+                <p class="text-xs text-slate-400 font-bold uppercase">Power Usage</p>
+                <p id="power" class="text-xl font-bold mt-1">-- kWh</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6">
+            <div class="box-style text-center">
+                <h3 class="font-bold mb-4">PAYMENT OPTIONS</h3>
+                <div id="qrBox" class="bg-white p-2 inline-block rounded mb-4">
+                    </div>
+                <p class="text-[10px] text-slate-400 mb-4">UPI: sayyadsharrin0@okaxis</p>
+                <button onclick="sendWhatsApp()" class="w-full bg-blue-600 hover:bg-blue-700 py-3 rounded font-bold transition">
+                    I've Paid - Send Approval Request
+                </button>
+            </div>
+
+            <div class="box-style text-center">
+                <h3 class="font-bold mb-4 text-yellow-500">ADMIN CONTROL</h3>
+                <input type="password" id="adminKey" class="w-full bg-slate-900 border border-slate-700 p-3 rounded text-center mb-4" placeholder="Enter Admin Secret Code">
+                <button id="approveBtn" onclick="verifyAdmin()" class="w-full bg-yellow-600 hover:bg-yellow-500 text-black font-bold py-3 rounded mb-4">
+                    APPROVE REQUEST
+                </button>
+                <button id="dlBtn" class="hidden w-full bg-white text-black py-2 rounded font-bold">
+                    📥 DOWNLOAD REPORT (PDF)
+                </button>
+            </div>
+        </div>
+
+        <div id="historyPanel" class="hidden box-style overflow-x-auto">
+            <h3 class="font-bold mb-4 accent-green">OPTIMIZATION HISTORY (ADMIN ONLY)</h3>
+            <table class="w-full text-left text-sm">
+                <thead>
+                    <tr class="text-slate-500 border-b border-slate-700">
+                        <th class="p-2">Date</th>
+                        <th class="p-2">User</th>
+                        <th class="p-2">Savings</th>
+                        <th class="p-2">Commission (35%)</th>
+                    </tr>
+                </thead>
+                <tbody id="historyData">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const THE_KEY = "rubinaramjan@14"; // Aapka password
+
+        // Real-time Calculation
+        document.getElementById('userInput').addEventListener('input', function(e) {
+            const val = e.target.value;
+            if(val.length > 0) {
+                const waste = (val.length * 0.5).toFixed(2);
+                const save = (waste * 0.65).toFixed(2);
+                const comm = (save * 0.35).toFixed(2);
+                const kwh = (val.length * 0.007).toFixed(3);
+
+                document.getElementById('bill').innerText = '₹' + waste;
+                document.getElementById('savings').innerText = '₹' + save;
+                document.getElementById('share').innerText = '₹' + comm;
+                document.getElementById('power').innerText = kwh + ' kWh';
+                
+                const upi = `upi://pay?pa=sayyadsharrin0@okaxis&pn=Sharrin%20Sayyad&am=${comm}&cu=INR`;
+                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" alt="QR">`;
+            }
+        });
+
+        // WhatsApp Logic
+        function sendWhatsApp() {
+            const comm = document.getElementById('share').innerText;
+            const userCode = document.getElementById('userInput').value;
+            const msg = `ECOSTACK AI PAYMENT DONE\nAmount: ${comm}\n\nUser Code:\n${userCode.substring(0, 100)}...\n\nPlease approve my request!`;
+            window.open(`https://wa.me/9096530829?text=${encodeURIComponent(msg)}`);
+        }
+
+        // Admin Approval Logic
+        function verifyAdmin() {
+            const input = document.getElementById('adminKey').value;
+            if(input === THE_KEY) {
+                alert("Request Approved! Code Unlocked.");
+                document.getElementById('lockOverlay').style.display = 'none';
+                document.getElementById('optimizedCode').innerText = "// OPTIMIZED CODE BY ECOSTACK AI\n// Power usage reduced by 60%\n\nfunction efficiency() {\n  return 'Optimized successfully';\n}";
+                document.getElementById('optimizedCode').classList.remove('text-slate-500');
+                document.getElementById('optimizedCode').classList.add('text-green-400');
+                document.getElementById('dlBtn').classList.remove('hidden');
+                document.getElementById('historyPanel').classList.remove('hidden');
+                
+                // Add to history
+                const row = `<tr><td class="p-2 text-xs">${new Date().toLocaleDateString()}</td><td class="p-2 text-xs">USER-ECO</td><td class="p-2 text-xs text-blue-400">${document.getElementById('savings').innerText}</td><td class="p-2 text-xs text-green-400">${document.getElementById('share').innerText}</td></tr>`;
+                document.getElementById('historyData').innerHTML += row;
+            } else {
+                alert("Wrong Admin Code!");
+            }
+        }
+    </script>
+</body>
+</html>

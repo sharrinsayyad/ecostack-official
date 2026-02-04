@@ -3,126 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - Global Code Auditor</title>
+    <title>ECOSTACK AI - Official CEO Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(34, 197, 94, 0.2); }
-        .accent-green { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
-        .btn-pay { background: linear-gradient(90deg, #16a34a, #22c55e); transition: all 0.3s; }
-        .btn-pay:hover { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); transform: translateY(-2px); }
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(15px); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .accent-green { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.4); }
+        .neon-border { border: 1px solid #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.2); }
+        .btn-glow:hover { box-shadow: 0 0 25px rgba(34, 197, 94, 0.4); transform: scale(1.02); }
     </style>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-8">
 
-    <header class="text-center mb-10">
-        <h1 class="text-5xl font-extrabold accent-green tracking-tighter mb-2">ECOSTACK AI</h1>
-        <div class="flex justify-center items-center gap-2">
-            <span class="px-3 py-1 bg-green-900/30 text-green-400 text-xs rounded-full border border-green-800">AI Active</span>
-            <span class="px-3 py-1 bg-blue-900/30 text-blue-400 text-xs rounded-full border border-blue-800">Global Rates Enabled</span>
+    <header class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <div>
+            <h1 class="text-4xl font-black accent-green tracking-tighter">ECOSTACK AI</h1>
+            <p class="text-slate-400 text-sm italic">Real-Time Global Code Audit & Carbon Neutrality Logic</p>
+        </div>
+        <div class="flex gap-4">
+            <div class="glass px-4 py-2 rounded-xl text-center">
+                <p class="text-[10px] uppercase text-slate-500">System Status</p>
+                <p class="text-xs text-green-400 font-bold">● AI CORE ACTIVE</p>
+            </div>
+            <div class="glass px-4 py-2 rounded-xl text-center">
+                <p class="text-[10px] uppercase text-slate-500">Current Rate</p>
+                <p class="text-xs text-blue-400 font-bold">Global API Linked</p>
+            </div>
         </div>
     </header>
 
-    <main class="max-w-6xl mx-auto space-y-8">
+    <main class="max-w-7xl mx-auto space-y-10">
         
         <div class="grid md:grid-cols-2 gap-8">
-            <div class="glass p-6 rounded-3xl">
+            <div class="glass p-6 rounded-[2rem] neon-border">
                 <h2 class="text-lg font-bold mb-4 flex items-center text-red-400">
-                    <span class="mr-2">⚡</span> WORST CODE (AUDIT)
+                    <span class="mr-2">📉</span> AUDIT CODE (WORST)
                 </h2>
-                <textarea id="userInput" class="w-full h-80 bg-black/40 border border-slate-700 rounded-xl p-4 text-sm font-mono focus:outline-none focus:border-red-500" placeholder="// Paste your messy code here for AI analysis..."></textarea>
+                <textarea id="userInput" class="w-full h-80 bg-black/40 border border-slate-800 rounded-2xl p-5 text-sm font-mono focus:border-red-500 focus:outline-none transition-all" placeholder="Paste user code here... AI will analyze waste in real-time."></textarea>
             </div>
 
-            <div class="glass p-6 rounded-3xl relative overflow-hidden">
-                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center z-10 p-6 text-center">
-                    <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4">
-                        <span class="text-3xl">🔒</span>
-                    </div>
-                    <p class="text-lg font-bold">Optimized Code Locked</p>
-                    <p class="text-sm text-slate-500 mt-2">AI has generated the optimized version. Complete payment to unlock the result.</p>
+            <div class="glass p-6 rounded-[2rem] relative overflow-hidden">
+                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/98 flex flex-col items-center justify-center z-20 text-center p-6">
+                    <div class="text-5xl mb-4">🔐</div>
+                    <h3 class="text-xl font-bold mb-2 text-white">Encrypted Output</h3>
+                    <p class="text-sm text-slate-500 max-w-xs">Pay 35% commission and enter Admin Code to unlock the optimized AI version.</p>
                 </div>
                 <h2 class="text-lg font-bold mb-4 flex items-center text-green-400">
                     <span class="mr-2">💎</span> OPTIMIZED BY AI
                 </h2>
-                <div id="optimizedCode" class="w-full h-80 bg-black/20 border border-slate-800 rounded-xl p-4 text-sm font-mono italic text-slate-500">
-                    // Optimized content hidden...
+                <div id="optimizedCode" class="w-full h-80 bg-black/20 border border-slate-900 rounded-2xl p-5 text-sm font-mono text-slate-600 overflow-auto italic">
+                    // Optimized code will appear here...
                 </div>
             </div>
         </div>
 
-        <div class="grid md:grid-cols-4 gap-4">
-            <div class="glass p-5 rounded-2xl border-b-2 border-red-500">
-                <h3 class="text-xs text-slate-400 uppercase font-black">Power Usage</h3>
-                <p id="powerUsage" class="text-xl font-bold mt-1">-- kWh</p>
-            </div>
-            <div class="glass p-5 rounded-2xl border-b-2 border-yellow-500">
-                <h3 class="text-xs text-slate-400 uppercase font-black">Carbon Footprint</h3>
-                <p id="carbon" class="text-xl font-bold mt-1 text-yellow-500">-- CO2</p>
-            </div>
-            <div class="glass p-5 rounded-2xl border-b-2 border-blue-500">
-                <h3 class="text-xs text-slate-400 uppercase font-black">Total Waste (USD)</h3>
-                <p id="totalCost" class="text-xl font-bold mt-1">$0.00</p>
-            </div>
-            <div class="glass p-5 rounded-2xl border-b-2 border-green-500 bg-green-500/5">
-                <h3 class="text-xs text-green-400 uppercase font-black">Our 35% Cut</h3>
-                <p id="commission" class="text-2xl font-black mt-1 text-green-400">₹0.00</p>
-            </div>
-        </div>
-
-        <div class="flex flex-col items-center py-6">
-            <button onclick="showPayment()" id="payBtn" class="btn-pay px-16 py-5 rounded-2xl font-black text-xl text-white shadow-2xl uppercase tracking-widest">
-                Pay to Unlock Code
-            </button>
-            
-            <div id="paymentSection" class="hidden mt-8 glass p-10 rounded-[2rem] text-center border-2 border-green-500/30">
-                <p class="mb-6 font-bold text-xl">Scan to Pay 35% Fee: <span id="payAmt" class="text-green-400 font-black">₹0</span></p>
-                <div id="qrPlaceholder" class="bg-white p-6 inline-block rounded-3xl mb-6 shadow-2xl">
-                    </div>
-                <div class="text-slate-400 text-sm mb-6">Receiving to: <span class="text-white">sayyadsharrin0@okaxis</span></div>
-                <button onclick="sendWhatsAppRequest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
-                    Submit Payment Screenshot to Admin
-                </button>
-            </div>
-
-            <div id="adminNotice" class="hidden mt-6 bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-yellow-400 text-center animate-pulse">
-                Verification in progress... Admin is checking your payment.
-            </div>
-        </div>
-    </main>
-
-    <script>
-        document.getElementById('userInput').addEventListener('input', function(e) {
-            const code = e.target.value;
-            if(code.length > 5) {
-                // AI Simulation Logic (Will be replaced by API)
-                const wasteCostUSD = (code.length * 0.12).toFixed(2);
-                const commissionINR = (wasteCostUSD * 83.5 * 0.35).toFixed(2);
-                const power = (code.length * 0.005).toFixed(3);
-                const co2 = (power * 0.85).toFixed(2);
-
-                document.getElementById('totalCost').innerText = '$' + wasteCostUSD;
-                document.getElementById('commission').innerText = '₹' + commissionINR;
-                document.getElementById('powerUsage').innerText = power + ' kWh';
-                document.getElementById('carbon').innerText = co2 + ' kg';
-                document.getElementById('payAmt').innerText = '₹' + commissionINR;
-                
-                // Real QR Generation with Amount
-                const upiUrl = `upi://pay?pa=sayyadsharrin0@okaxis&pn=Sharrin%20Sayyad&am=${commissionINR}&cu=INR`;
-                document.getElementById('qrPlaceholder').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}" alt="QR Code">`;
-            }
-        });
-
-        function showPayment() {
-            document.getElementById('paymentSection').classList.toggle('hidden');
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }
-
-        function sendWhatsAppRequest() {
-            const amt = document.getElementById('commission').innerText;
-            const text = `ECOSTACK AI REPORT:\n--------------------\nPayment Sent: ${amt}\nStatus: Pending Approval\nUPI ID: sayyadsharrin0@okaxis\n\nPlease verify and unlock my optimized code.`;
-            window.open(`https://wa.me/9096530829?text=${encodeURIComponent(text)}`);
-            document.getElementById('adminNotice').classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="glass p-6

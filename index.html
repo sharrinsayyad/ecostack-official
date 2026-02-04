@@ -3,114 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - Real-Time Auditor</title>
+    <title>ECOSTACK AI - Global Code Auditor</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .accent-green { color: #22c55e; }
-        .btn-pay { background: linear-gradient(90deg, #22c55e, #16a34a); transition: transform 0.2s; }
-        .btn-pay:hover { transform: scale(1.05); }
+        body { background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(34, 197, 94, 0.2); }
+        .accent-green { color: #22c55e; text-shadow: 0 0 10px rgba(34, 197, 94, 0.5); }
+        .btn-pay { background: linear-gradient(90deg, #16a34a, #22c55e); transition: all 0.3s; }
+        .btn-pay:hover { box-shadow: 0 0 20px rgba(34, 197, 94, 0.4); transform: translateY(-2px); }
     </style>
 </head>
 <body class="p-4 md:p-10">
 
     <header class="text-center mb-10">
-        <h1 class="text-4xl font-bold accent-green tracking-tight">ECOSTACK AI</h1>
-        <p class="text-slate-400">Real-Time Code Audit & Optimization</p>
+        <h1 class="text-5xl font-extrabold accent-green tracking-tighter mb-2">ECOSTACK AI</h1>
+        <div class="flex justify-center items-center gap-2">
+            <span class="px-3 py-1 bg-green-900/30 text-green-400 text-xs rounded-full border border-green-800">AI Active</span>
+            <span class="px-3 py-1 bg-blue-900/30 text-blue-400 text-xs rounded-full border border-blue-800">Global Rates Enabled</span>
+        </div>
     </header>
 
     <main class="max-w-6xl mx-auto space-y-8">
         
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="glass p-6 rounded-2xl shadow-xl">
-                <h2 class="text-lg font-semibold mb-4 flex items-center">
-                    <span class="mr-2">🔴</span> Audit Code (Worst Version)
+        <div class="grid md:grid-cols-2 gap-8">
+            <div class="glass p-6 rounded-3xl">
+                <h2 class="text-lg font-bold mb-4 flex items-center text-red-400">
+                    <span class="mr-2">⚡</span> WORST CODE (AUDIT)
                 </h2>
-                <textarea id="userInput" class="w-full h-64 bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm font-mono focus:outline-none focus:border-green-500" placeholder="Paste your messy code here..."></textarea>
+                <textarea id="userInput" class="w-full h-80 bg-black/40 border border-slate-700 rounded-xl p-4 text-sm font-mono focus:outline-none focus:border-red-500" placeholder="// Paste your messy code here for AI analysis..."></textarea>
             </div>
 
-            <div class="glass p-6 rounded-2xl shadow-xl relative">
-                <div id="lockOverlay" class="absolute inset-0 bg-slate-900/90 flex flex-col items-center justify-center rounded-2xl z-10">
-                    <span class="text-4xl mb-2">🔒</span>
-                    <p class="text-sm font-medium">Optimized Code Locked</p>
-                    <p class="text-xs text-slate-500 text-center px-4">Complete payment and get Admin Approval to unlock.</p>
-                </div>
-                <h2 class="text-lg font-semibold mb-4 flex items-center">
-                    <span class="mr-2">🟢</span> Optimized Code (AI Powered)
-                </h2>
-                <div id="optimizedCode" class="w-full h-64 bg-slate-900 border border-slate-700 rounded-lg p-4 text-sm font-mono overflow-auto">
+            <div class="glass p-6 rounded-3xl relative overflow-hidden">
+                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center z-10 p-6 text-center">
+                    <div class="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mb-4">
+                        <span class="text-3xl">🔒</span>
                     </div>
+                    <p class="text-lg font-bold">Optimized Code Locked</p>
+                    <p class="text-sm text-slate-500 mt-2">AI has generated the optimized version. Complete payment to unlock the result.</p>
+                </div>
+                <h2 class="text-lg font-bold mb-4 flex items-center text-green-400">
+                    <span class="mr-2">💎</span> OPTIMIZED BY AI
+                </h2>
+                <div id="optimizedCode" class="w-full h-80 bg-black/20 border border-slate-800 rounded-xl p-4 text-sm font-mono italic text-slate-500">
+                    // Optimized content hidden...
+                </div>
             </div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-6">
-            <div class="glass p-6 rounded-2xl border-l-4 border-red-500">
-                <h3 class="text-sm text-slate-400 uppercase tracking-wider">Power Consumption</h3>
-                <p id="powerUsage" class="text-2xl font-bold mt-2">-- units/hr</p>
-                <p class="text-xs text-red-400 mt-1">High Carbon Footprint</p>
+        <div class="grid md:grid-cols-4 gap-4">
+            <div class="glass p-5 rounded-2xl border-b-2 border-red-500">
+                <h3 class="text-xs text-slate-400 uppercase font-black">Power Usage</h3>
+                <p id="powerUsage" class="text-xl font-bold mt-1">-- kWh</p>
             </div>
-            <div class="glass p-6 rounded-2xl border-l-4 border-blue-500">
-                <h3 class="text-sm text-slate-400 uppercase tracking-wider">Total Projected Cost</h3>
-                <p id="totalCost" class="text-2xl font-bold mt-2">₹0.00</p>
+            <div class="glass p-5 rounded-2xl border-b-2 border-yellow-500">
+                <h3 class="text-xs text-slate-400 uppercase font-black">Carbon Footprint</h3>
+                <p id="carbon" class="text-xl font-bold mt-1 text-yellow-500">-- CO2</p>
             </div>
-            <div class="glass p-6 rounded-2xl border-l-4 border-green-500">
-                <h3 class="text-sm text-slate-400 uppercase tracking-wider">Our 35% Commission</h3>
-                <p id="commission" class="text-2xl font-bold text-green-400 mt-2">₹0.00</p>
-                <p id="savingsText" class="text-xs text-slate-400 mt-1 italic">Potential Savings: ₹0</p>
+            <div class="glass p-5 rounded-2xl border-b-2 border-blue-500">
+                <h3 class="text-xs text-slate-400 uppercase font-black">Total Waste (USD)</h3>
+                <p id="totalCost" class="text-xl font-bold mt-1">$0.00</p>
+            </div>
+            <div class="glass p-5 rounded-2xl border-b-2 border-green-500 bg-green-500/5">
+                <h3 class="text-xs text-green-400 uppercase font-black">Our 35% Cut</h3>
+                <p id="commission" class="text-2xl font-black mt-1 text-green-400">₹0.00</p>
             </div>
         </div>
 
-        <div class="flex flex-col items-center justify-center space-y-4 pt-6">
-            <button onclick="showPayment()" class="btn-pay px-12 py-4 rounded-full font-bold text-lg shadow-lg">
-                Pay & Unlock Optimized Code
+        <div class="flex flex-col items-center py-6">
+            <button onclick="showPayment()" id="payBtn" class="btn-pay px-16 py-5 rounded-2xl font-black text-xl text-white shadow-2xl uppercase tracking-widest">
+                Pay to Unlock Code
             </button>
             
-            <div id="paymentSection" class="hidden glass p-8 rounded-2xl text-center animate-bounce">
-                <p class="mb-4 font-semibold">Scan QR or use GPay to pay ₹<span id="payAmt">0</span></p>
-                <div class="bg-white p-4 inline-block rounded-lg mb-4">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=upi://pay?pa=9096530829@upi" alt="QR Code">
-                </div>
-                <button onclick="sendWhatsAppRequest()" class="block w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-medium">
-                    I've Paid - Request Admin Approval
+            <div id="paymentSection" class="hidden mt-8 glass p-10 rounded-[2rem] text-center border-2 border-green-500/30">
+                <p class="mb-6 font-bold text-xl">Scan to Pay 35% Fee: <span id="payAmt" class="text-green-400 font-black">₹0</span></p>
+                <div id="qrPlaceholder" class="bg-white p-6 inline-block rounded-3xl mb-6 shadow-2xl">
+                    </div>
+                <div class="text-slate-400 text-sm mb-6">Receiving to: <span class="text-white">sayyadsharrin0@okaxis</span></div>
+                <button onclick="sendWhatsAppRequest()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-xl font-bold shadow-lg flex items-center justify-center gap-2">
+                    Submit Payment Screenshot to Admin
                 </button>
             </div>
 
-            <div id="adminNotice" class="hidden text-center text-yellow-400 text-sm italic">
-                Waiting for CEO (Admin) to approve your request...
+            <div id="adminNotice" class="hidden mt-6 bg-yellow-500/10 border border-yellow-500/20 p-4 rounded-xl text-yellow-400 text-center animate-pulse">
+                Verification in progress... Admin is checking your payment.
             </div>
-            
-            <button id="downloadBtn" class="hidden bg-slate-100 text-slate-900 px-6 py-2 rounded-lg font-bold">
-                Download Analysis Report (PDF)
-            </button>
         </div>
     </main>
 
     <script>
-        // Real-time Calculation Logic
         document.getElementById('userInput').addEventListener('input', function(e) {
-            const codeLength = e.target.value.length;
-            if(codeLength > 0) {
-                const cost = (codeLength * 0.45).toFixed(2);
-                const comm = (cost * 0.35).toFixed(2);
-                const power = (codeLength * 0.012).toFixed(3);
+            const code = e.target.value;
+            if(code.length > 5) {
+                // AI Simulation Logic (Will be replaced by API)
+                const wasteCostUSD = (code.length * 0.12).toFixed(2);
+                const commissionINR = (wasteCostUSD * 83.5 * 0.35).toFixed(2);
+                const power = (code.length * 0.005).toFixed(3);
+                const co2 = (power * 0.85).toFixed(2);
 
-                document.getElementById('totalCost').innerText = '₹' + cost;
-                document.getElementById('commission').innerText = '₹' + comm;
+                document.getElementById('totalCost').innerText = '$' + wasteCostUSD;
+                document.getElementById('commission').innerText = '₹' + commissionINR;
                 document.getElementById('powerUsage').innerText = power + ' kWh';
-                document.getElementById('savingsText').innerText = 'Potential Savings: ₹' + (cost * 0.6).toFixed(2);
-                document.getElementById('payAmt').innerText = comm;
+                document.getElementById('carbon').innerText = co2 + ' kg';
+                document.getElementById('payAmt').innerText = '₹' + commissionINR;
+                
+                // Real QR Generation with Amount
+                const upiUrl = `upi://pay?pa=sayyadsharrin0@okaxis&pn=Sharrin%20Sayyad&am=${commissionINR}&cu=INR`;
+                document.getElementById('qrPlaceholder').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiUrl)}" alt="QR Code">`;
             }
         });
 
         function showPayment() {
             document.getElementById('paymentSection').classList.toggle('hidden');
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
         }
 
         function sendWhatsAppRequest() {
-            const comm = document.getElementById('commission').innerText;
-            const msg = `ECOSTACK AI: Payment Done! Amount: ${comm}. Requesting approval for my code. UserID: ECO-${Math.floor(Math.random()*9000)}`;
-            window.open(`https://wa.me/9096530829?text=${encodeURIComponent(msg)}`);
+            const amt = document.getElementById('commission').innerText;
+            const text = `ECOSTACK AI REPORT:\n--------------------\nPayment Sent: ${amt}\nStatus: Pending Approval\nUPI ID: sayyadsharrin0@okaxis\n\nPlease verify and unlock my optimized code.`;
+            window.open(`https://wa.me/9096530829?text=${encodeURIComponent(text)}`);
             document.getElementById('adminNotice').classList.remove('hidden');
         }
     </script>

@@ -76,7 +76,6 @@
             });
         };
 
-        // --- PHOTO 2 WALI EXACT REPORT DESIGN ---
         window.genPDF = function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
@@ -115,10 +114,14 @@
                 const data = snap.val();
                 if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
+                    // Saboot fetch karne ke liye fixed logic
+                    const worst = r.worstCode ? r.worstCode.replace(/'/g, "\\'") : "No Data";
+                    const opt = r.optimizedCode ? r.optimizedCode.replace(/'/g, "\\'") : "No Data";
+
                     cont.innerHTML += `
                     <div class="bg-slate-900 p-4 rounded-2xl mb-4 border border-slate-800">
                         <div class="flex justify-between items-center mb-2">
-                            <span class="text-blue-400 text-[10px] font-bold">${r.id} | ${r.date} ${r.time}</span>
+                            <span class="text-blue-400 text-[10px] font-bold uppercase tracking-widest">${r.id} | ${r.date} ${r.time}</span>
                             <div class="flex gap-2">
                                 ${r.status === 'PENDING' ? `
                                 <button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-3 py-1 rounded text-[9px]">Approve</button>
@@ -126,15 +129,22 @@
                                 ` : `<span class="text-[9px] uppercase font-bold text-slate-500">${r.status}</span>`}
                             </div>
                         </div>
-                        <p class="text-[10px] text-white mb-2">Units: ${r.units} | Fee: ${r.fee}</p>
+                        <p class="text-[10px] text-white mb-2">Units: ${r.units} | Fee: ${r.fee} | Saved: ${r.saving}</p>
                         <div class="grid grid-cols-2 gap-2">
-                            <button onclick="alert('WORST CODE:\\n${r.worstCode ? r.worstCode.substring(0,500) : 'No Data'}')" class="bg-slate-800 py-1 rounded text-[8px] text-red-400 border border-red-900/30">View Worst Code</button>
-                            <button onclick="alert('OPTIMIZED CODE:\\n${r.optimizedCode ? r.optimizedCode.substring(0,500) : 'No Data'}')" class="bg-slate-800 py-1 rounded text-[8px] text-green-400 border border-green-900/30">View Optimized</button>
+                            <button onclick="viewCode('CLIENT WORST CODE', \`${worst}\`)" class="bg-slate-800 py-1.5 rounded-lg text-[8px] text-red-400 border border-red-900/30 font-bold">VIEW WORST</button>
+                            <button onclick="viewCode('OUR OPTIMIZED CODE', \`${opt}\`)" class="bg-slate-800 py-1.5 rounded-lg text-[8px] text-green-400 border border-green-900/30 font-bold">VIEW OPTIMIZED</button>
                         </div>
                     </div>`;
                 });
             });
         }
+
+        // New Tab View Logic (Zero Error)
+        window.viewCode = (title, content) => {
+            const win = window.open("", "_blank");
+            win.document.write(`<html><head><title>${title}</title></head><body style="background:#020617;color:#94a3b8;font-family:monospace;padding:30px;line-height:1.6;"><h3>${title}</h3><hr style="border-color:#1e293b"/><pre style="white-space:pre-wrap;">${content}</pre></body></html>`);
+        };
+
         window.updateStatus = (key, status) => update(ref(db, `history/${key}`), { status: status });
 
         onValue(ref(db, 'history'), (snap) => {
@@ -154,7 +164,7 @@
     <div id="adminDashboard" class="hidden max-w-4xl mx-auto py-10">
         <h1 class="text-2xl font-black text-blue-500 mb-6 italic border-b border-slate-800 pb-4">CEO EVIDENCE CENTER</h1>
         <div id="historyList"></div>
-        <button onclick="location.reload()" class="mt-4 bg-slate-800 px-4 py-2 rounded-xl text-xs">Logout</button>
+        <button onclick="location.reload()" class="mt-4 bg-slate-800 px-4 py-2 rounded-xl text-xs uppercase font-bold">Logout</button>
     </div>
 
     <div id="mainUserUI" class="max-w-7xl mx-auto space-y-6">
@@ -189,7 +199,7 @@
             <div id="qrBox" class="bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-h-[160px] shadow-2xl mx-auto w-full max-w-[170px]"><p class="text-[9px] text-slate-400 font-bold uppercase italic">Scan to Pay</p></div>
             <div class="md:col-span-2 space-y-4">
                 <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">I'VE PAID - REQUEST APPROVAL</button>
-                <button id="pdfBtn" onclick="genPDF()" class="hidden w-full bg-white text-slate-950 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all">⬇️ DOWNLOAD REPORT (PDF)</button>
+                <button id="pdfBtn" onclick="genPDF()" class="hidden w-full bg-white text-slate-950 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">⬇️ DOWNLOAD REPORT (PDF)</button>
             </div>
         </div>
     </div>

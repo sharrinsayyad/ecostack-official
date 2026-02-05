@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECOSTACK AI - CEO Master Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -24,8 +25,8 @@
         let currentReqID = "";
         let globalOptimizedCode = "";
         let originalUserCode = "";
+        let pdfData = {}; // PDF ke liye data store karne ke liye
 
-        // REAL ENGINE: Squeezes code to save server space
         function performRealOptimization(code) {
             let optimized = code.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
             optimized = optimized.replace(/\s+/g, ' ').trim();
@@ -55,9 +56,12 @@
                 document.getElementById('dispOptimized').innerText = "₹" + (worstBill - totalSavings).toFixed(2);
                 document.getElementById('dispTotalSaving').innerText = "₹" + totalSavings;
                 document.getElementById('dispCEOFee').innerText = "₹" + ceoFee;
+
+                // PDF ke liye data update karna
+                pdfData = { units, worstBill, totalSavings, ceoFee };
                 
                 const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${ceoFee}&cu=INR`;
-                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl shadow-lg">`;
+                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl">`;
             }
         });
 
@@ -77,6 +81,24 @@
             });
         };
 
+        // --- REAL PDF DOWNLOAD FUNCTION ---
+        window.downloadPDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFillColor(2, 6, 23); doc.rect(0, 0, 210, 297, 'F');
+            doc.setTextColor(59, 130, 246); doc.setFontSize(26); doc.text("ECOSTACK AI REPORT", 20, 30);
+            doc.setTextColor(255, 255, 255); doc.setFontSize(10);
+            doc.text(`ID: ${currentReqID} | VERIFIED BY CEO`, 20, 45);
+            doc.text(`DATE: ${new Date().toLocaleDateString()}`, 20, 52);
+            doc.setDrawColor(59, 130, 246); doc.line(20, 60, 190, 60);
+            doc.setFontSize(12); doc.text("SAVINGS SUMMARY:", 20, 80);
+            doc.text(`- Energy Saved: ${pdfData.units} kWh`, 25, 95);
+            doc.text(`- Worst Case Cost: INR ${pdfData.worstBill}`, 25, 105);
+            doc.text(`- Real Net Savings: INR ${pdfData.totalSavings}`, 25, 115);
+            doc.text(`- CEO Verification Fee: ${document.getElementById('dispCEOFee').innerText}`, 25, 125);
+            doc.save(`Audit_Report_${currentReqID}.pdf`);
+        };
+
         function loadHistory() {
             onValue(ref(db, 'history'), (snap) => {
                 const cont = document.getElementById('historyList');
@@ -85,23 +107,14 @@
                 if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
                     cont.innerHTML += `
-                    <div class="bg-slate-900 p-6 rounded-[30px] mb-6 border border-slate-800 shadow-2xl">
-                        <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
-                            <div>
-                                <h3 class="text-blue-500 font-black text-sm">${r.id}</h3>
-                                <p class="text-[9px] text-slate-500 font-bold">${r.date} | ${r.time}</p>
-                            </div>
-                            <div>
-                                ${r.status === 'PENDING' ? `<button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-4 py-1.5 rounded-xl text-[10px] font-bold text-white">APPROVE</button>` : `<span class="text-[10px] uppercase font-black text-slate-500">${r.status}</span>`}
-                            </div>
+                    <div class="bg-slate-900 p-6 rounded-[30px] mb-4 border border-slate-800 shadow-2xl">
+                        <div class="flex justify-between items-center mb-4">
+                            <div><h3 class="text-blue-500 font-bold">${r.id}</h3><p class="text-[9px] text-slate-500">${r.date}</p></div>
+                            ${r.status === 'PENDING' ? `<button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-4 py-1.5 rounded-xl text-[10px] font-bold">APPROVE</button>` : `<span class="text-[10px] uppercase font-black text-slate-500">${r.status}</span>`}
                         </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4 font-black">
-                            <div class="bg-black/40 p-3 rounded-2xl border border-slate-800 text-center"><p class="text-[8px] text-slate-500">CEO FEE</p><p class="text-green-400">${r.fee}</p></div>
-                            <div class="bg-black/40 p-3 rounded-2xl border border-slate-800 text-center"><p class="text-[8px] text-slate-500">SAVINGS</p><p class="text-blue-400">${r.saving}</p></div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="viewCode('ORIGINAL CLIENT CODE', '${r.worstCode}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-bold text-red-400 border border-red-900/30">VIEW ORIGINAL</button>
-                            <button onclick="viewCode('ECOSTACK OPTIMIZED CODE', '${r.optimizedCode}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-bold text-green-400 border border-green-900/30">VIEW OPTIMIZED</button>
+                        <div class="grid grid-cols-2 gap-3 mb-4">
+                            <button onclick="viewCode('ORIGINAL', '${r.worstCode}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-bold text-red-400">VIEW RAW</button>
+                            <button onclick="viewCode('OPTIMIZED', '${r.optimizedCode}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-bold text-green-400">VIEW OPTIMIZED</button>
                         </div>
                     </div>`;
                 });
@@ -109,13 +122,10 @@
         }
 
         window.viewCode = (title, base64) => {
-            try {
-                const decoded = decodeURIComponent(escape(atob(base64)));
-                const cleanCode = decoded.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                const html = `<html><head><title>Evidence</title><style>body{background:#020617;color:#94a3b8;font-family:monospace;padding:40px;}h2{color:#3b82f6;}pre{background:#0f172a;padding:20px;border-radius:15px;border:1px solid #1e293b;white-space:pre-wrap;}</style></head><body><h2>${title}</h2><pre>${cleanCode}</pre></body></html>`;
-                const blob = new Blob([html], { type: 'text/html' });
-                window.open(URL.createObjectURL(blob), '_blank');
-            } catch(e) { alert("Error rendering code."); }
+            const decoded = decodeURIComponent(escape(atob(base64)));
+            const clean = decoded.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const html = `<html><body style="background:#020617;color:#94a3b8;font-family:monospace;padding:40px;"><h2>${title}</h2><pre style="background:#0f172a;padding:20px;border-radius:15px;border:1px solid #1e293b;white-space:pre-wrap;">${clean}</pre></body></html>`;
+            window.open(URL.createObjectURL(new Blob([html], {type: 'text/html'})), '_blank');
         };
 
         window.updateStatus = (key, status) => update(ref(db, `history/${key}`), { status: status });
@@ -127,6 +137,7 @@
                 if(myReq && myReq.status === "APPROVED") {
                     document.getElementById('lock').classList.add('hidden');
                     document.getElementById('outputBox').innerText = decodeURIComponent(escape(atob(myReq.optimizedCode)));
+                    document.getElementById('pdfBtn').classList.remove('hidden'); // PDF Button Ab Dikh Jayega
                 }
             }
         });
@@ -134,9 +145,9 @@
 </head>
 <body class="bg-[#020617] text-slate-300 font-sans p-4">
     <div id="adminDashboard" class="hidden max-w-2xl mx-auto py-10">
-        <h1 class="text-2xl font-black text-blue-500 italic mb-8 border-b border-slate-800 pb-4">CEO EVIDENCE CENTER</h1>
+        <h1 class="text-2xl font-black text-blue-500 italic mb-10">CEO EVIDENCE CENTER</h1>
         <div id="historyList"></div>
-        <button onclick="location.reload()" class="mt-6 text-[10px] font-bold text-slate-600 uppercase">Logout Dashboard</button>
+        <button onclick="location.reload()" class="mt-4 text-xs font-bold text-slate-600">LOGOUT</button>
     </div>
 
     <div id="mainUserUI" class="max-w-7xl mx-auto space-y-6">
@@ -156,17 +167,18 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-yellow-500 font-bold uppercase mb-1">Energy</p><p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p></div>
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-red-500 font-bold uppercase mb-1">Worst</p><p id="dispWorst" class="text-lg font-black text-white">₹0.00</p></div>
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-blue-500 font-bold uppercase mb-1">Opt.</p><p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p></div>
-            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-blue-400 font-bold uppercase mb-1">Saving</p><p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p></div>
-            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-green-500 font-bold uppercase mb-1">Fee</p><p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-yellow-500 font-bold uppercase">Energy</p><p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-red-500 font-bold uppercase">Worst</p><p id="dispWorst" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-blue-500 font-bold uppercase">Opt.</p><p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-blue-400 font-bold uppercase">Saving</p><p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-green-500 font-bold uppercase">Fee</p><p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p></div>
         </div>
 
         <div class="grid md:grid-cols-3 gap-6 items-center bg-slate-900/30 p-8 rounded-[40px] border border-slate-800">
-            <div id="qrBox" class="bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-h-[160px] shadow-2xl mx-auto w-full max-w-[170px]"></div>
+            <div id="qrBox" class="bg-white p-4 rounded-3xl min-h-[160px] flex items-center justify-center mx-auto shadow-2xl"></div>
             <div class="md:col-span-2 space-y-4">
-                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">REQUEST CEO VERIFICATION</button>
+                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-[25px] font-black text-xs tracking-widest shadow-xl transition-all">REQUEST CEO VERIFICATION</button>
+                <button id="pdfBtn" onclick="downloadPDF()" class="hidden w-full bg-white text-black py-5 rounded-[25px] font-black text-xs tracking-widest shadow-2xl">⬇️ DOWNLOAD VERIFIED REPORT</button>
             </div>
         </div>
     </div>

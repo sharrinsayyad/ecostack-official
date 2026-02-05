@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECOSTACK AI - CEO Master Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -45,10 +44,9 @@
             if(code.length > 5) {
                 originalUserCode = code;
                 globalOptimizedCode = performRealOptimization(code);
-                
                 const units = (code.length * 0.042).toFixed(2);
                 const worstBill = (units * 12.5).toFixed(2);
-                const totalSavings = (worstBill * 0.35).toFixed(2); // Initial estimate
+                const totalSavings = (worstBill * 0.35).toFixed(2);
                 const ceoFee = (totalSavings * 0.35).toFixed(2);
 
                 document.getElementById('dispUnits').innerText = units + " kWh";
@@ -64,20 +62,14 @@
 
         window.sendRequest = function() {
             const fee = document.getElementById('dispCEOFee').innerText;
-            const saving = document.getElementById('dispTotalSaving').innerText;
             if(fee === "₹0.00") return alert("Pehle code audit karein!");
-            
             currentReqID = "ECO-" + Math.floor(1000 + Math.random() * 9000);
 
             push(ref(db, 'history'), {
-                id: currentReqID, 
-                fee: fee, 
-                saving: saving,
-                worstCode: originalUserCode, 
-                optimizedCode: globalOptimizedCode,
-                status: "PENDING", 
-                date: new Date().toLocaleDateString(), 
-                time: new Date().toLocaleTimeString()
+                id: currentReqID, fee: fee, saving: document.getElementById('dispTotalSaving').innerText,
+                worstCode: btoa(unescape(encodeURIComponent(originalUserCode))), 
+                optimizedCode: btoa(unescape(encodeURIComponent(globalOptimizedCode))),
+                status: "PENDING", date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString()
             }).then(() => {
                 window.open(`https://wa.me/9096530829?text=CEO%20Approve%20ID:${currentReqID}%20Amt:${fee}`);
                 document.getElementById('statusTxt').innerText = "Verifying with CEO...";
@@ -91,47 +83,47 @@
                 const data = snap.val();
                 if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
-                    const wSafe = r.worstCode ? encodeURIComponent(r.worstCode) : "";
-                    const oSafe = r.optimizedCode ? encodeURIComponent(r.optimizedCode) : "";
                     cont.innerHTML += `
                     <div class="bg-slate-900 p-6 rounded-[30px] mb-6 border border-slate-800 shadow-2xl">
-                        <div class="flex justify-between items-start mb-4 border-b border-slate-800 pb-3">
+                        <div class="flex justify-between items-center mb-4 border-b border-slate-800 pb-3">
                             <div>
-                                <h3 class="text-blue-500 font-black text-sm tracking-tighter">${r.id}</h3>
+                                <h3 class="text-blue-500 font-black text-sm">${r.id}</h3>
                                 <p class="text-[9px] text-slate-500 uppercase font-bold">${r.date} | ${r.time}</p>
                             </div>
                             <div>
                                 ${r.status === 'PENDING' ? `
-                                <button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-4 py-1.5 rounded-xl text-[10px] font-bold text-white shadow-lg">APPROVE</button>
-                                ` : `<span class="bg-slate-800 px-3 py-1 rounded-lg text-[10px] uppercase font-black text-slate-400 border border-slate-700">${r.status}</span>`}
+                                <button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-4 py-1.5 rounded-xl text-[10px] font-bold">APPROVE</button>
+                                ` : `<span class="text-[10px] uppercase font-black text-slate-400">${r.status}</span>`}
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="bg-black/30 p-3 rounded-2xl border border-slate-800">
-                                <p class="text-[8px] text-slate-500 font-bold uppercase">CEO Fee (Revenue)</p>
-                                <p class="text-lg font-black text-green-400">${r.fee}</p>
+                                <p class="text-[8px] text-slate-500 font-bold uppercase">Fee</p>
+                                <p class="text-md font-black text-green-400">${r.fee}</p>
                             </div>
                             <div class="bg-black/30 p-3 rounded-2xl border border-slate-800">
-                                <p class="text-[8px] text-slate-500 font-bold uppercase">Client Savings</p>
-                                <p class="text-lg font-black text-blue-400">${r.saving}</p>
+                                <p class="text-[8px] text-slate-500 font-bold uppercase">Savings</p>
+                                <p class="text-md font-black text-blue-400">${r.saving}</p>
                             </div>
                         </div>
                         <div class="grid grid-cols-2 gap-3">
-                            <button onclick="viewFullCode('CLIENT RAW CODE', '${wSafe}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-black text-red-400 border border-red-900/30">VIEW ORIGINAL</button>
-                            <button onclick="viewFullCode('OPTIMIZED AI CODE', '${oSafe}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-black text-green-400 border border-green-900/30">VIEW OPTIMIZED</button>
+                            <button onclick="viewCode('ORIGINAL', '${r.worstCode}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-black text-red-400 border border-red-900/30">VIEW ORIGINAL</button>
+                            <button onclick="viewCode('OPTIMIZED', '${r.optimizedCode}')" class="bg-slate-800 py-3 rounded-2xl text-[9px] font-black text-green-400 border border-green-900/30">VIEW OPTIMIZED</button>
                         </div>
                     </div>`;
                 });
             });
         }
 
-        window.viewFullCode = (title, code) => {
-            const decoded = decodeURIComponent(code);
-            const win = window.open("", "_blank");
-            win.document.write(`<html><body style="background:#020617;color:#94a3b8;font-family:monospace;padding:40px;">
-                <h2 style="color:#3b82f6;">${title}</h2><hr style="border:1px solid #1e293b;margin:20px 0;"/>
-                <pre style="white-space:pre-wrap;background:#0f172a;padding:20px;border-radius:15px;border:1px solid #1e293b;">${decoded}</pre>
-            </body></html>`);
+        window.viewCode = (title, base64) => {
+            try {
+                const decoded = decodeURIComponent(escape(atob(base64)));
+                const win = window.open("", "_blank");
+                win.document.write(`<html><body style="background:#020617;color:#94a3b8;font-family:monospace;padding:40px;">
+                    <h2 style="color:#3b82f6;">${title} CODE</h2><hr style="border:1px solid #1e293b;margin:20px 0;"/>
+                    <pre style="white-space:pre-wrap;background:#0f172a;padding:20px;border-radius:15px;border:1px solid #1e293b;">${decoded}</pre>
+                </body></html>`);
+            } catch(e) { alert("Code format error!"); }
         };
 
         window.updateStatus = (key, status) => update(ref(db, `history/${key}`), { status: status });
@@ -142,8 +134,7 @@
                 const myReq = Object.values(data).find(r => r.id === currentReqID);
                 if(myReq && myReq.status === "APPROVED") {
                     document.getElementById('lock').classList.add('hidden');
-                    document.getElementById('outputBox').innerText = myReq.optimizedCode;
-                    document.getElementById('pdfBtn').classList.remove('hidden');
+                    document.getElementById('outputBox').innerText = decodeURIComponent(escape(atob(myReq.optimizedCode)));
                 }
             }
         });
@@ -153,7 +144,7 @@
     <div id="adminDashboard" class="hidden max-w-2xl mx-auto py-10">
         <h1 class="text-2xl font-black text-blue-500 italic mb-10">CEO REVENUE & EVIDENCE</h1>
         <div id="historyList"></div>
-        <button onclick="location.reload()" class="mt-4 text-xs font-bold text-slate-600">LOGOUT</button>
+        <button onclick="location.reload()" class="mt-4 text-xs font-bold text-slate-600 uppercase">Logout</button>
     </div>
 
     <div id="mainUserUI" class="max-w-7xl mx-auto space-y-6">
@@ -163,7 +154,7 @@
         </div>
 
         <div class="grid lg:grid-cols-2 gap-6">
-            <textarea id="auditInput" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-6 text-xs font-mono rounded-[35px] outline-none" placeholder="Paste server code here..."></textarea>
+            <textarea id="auditInput" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-6 text-xs font-mono rounded-[35px] outline-none" placeholder="Paste server code..."></textarea>
             <div class="relative">
                 <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[35px] border border-slate-800 text-center">
                     <p class="text-4xl mb-2">🔒</p><p class="text-[10px] font-black text-slate-500 uppercase tracking-widest" id="statusTxt">Awaiting CEO Verification</p>
@@ -172,18 +163,18 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-yellow-500 font-bold uppercase mb-1">Energy Load</p><p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p></div>
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-red-500 font-bold uppercase mb-1">Worst Bill</p><p id="dispWorst" class="text-lg font-black text-white">₹0.00</p></div>
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-blue-500 font-bold uppercase mb-1">Opt. Bill</p><p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p></div>
-            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-blue-400 font-bold uppercase mb-1">Total Saving</p><p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p></div>
-            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-green-500 font-bold uppercase mb-1">CEO Fee</p><p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p></div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-yellow-500 font-bold uppercase">Energy</p><p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-red-500 font-bold uppercase">Worst</p><p id="dispWorst" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-blue-500 font-bold uppercase">Opt.</p><p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-blue-400 font-bold uppercase">Saving</p><p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px] shadow-lg"><p class="text-[9px] text-green-500 font-bold uppercase">Fee</p><p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p></div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-6 items-center bg-slate-900/30 p-8 rounded-[40px] border border-slate-800/50">
+        <div class="grid md:grid-cols-3 gap-6 items-center bg-slate-900/30 p-8 rounded-[40px] border border-slate-800">
             <div id="qrBox" class="bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-h-[160px] shadow-2xl mx-auto w-full max-w-[170px]"></div>
             <div class="md:col-span-2 space-y-4">
-                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl">REQUEST CEO VERIFICATION</button>
+                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">REQUEST CEO VERIFICATION</button>
             </div>
         </div>
     </div>

@@ -3,163 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - CEO Dashboard</title>
+    <title>ECOSTACK AI - CEO Cloud Panel</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: sans-serif; }
-        .box-style { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 20px; }
-        .accent-green { color: #22c55e; }
-        .loading-spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid #22c55e; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .hidden-panel { display: none; }
-    </style>
-</head>
-<body class="p-6">
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    <header class="text-center mb-8">
-        <h1 class="text-3xl font-black accent-green tracking-tight">ECOSTACK AI</h1>
-        <p class="text-slate-400 text-[10px] uppercase tracking-[0.3em]">Global Code Audit Engine</p>
-    </header>
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0",
+            authDomain: "autostack-ai.firebaseapp.com",
+            projectId: "autostack-ai",
+            storageBucket: "autostack-ai.firebasestorage.app",
+            messagingSenderId: "35493907558",
+            appId: "1:35493907558:web:34c1c21e5a85bcae2131a7",
+            measurementId: "G-P1VJ0FTMX9"
+        };
 
-    <div class="max-w-7xl mx-auto space-y-6">
-        
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="box-style">
-                <h2 class="font-bold mb-2 text-red-400 text-sm">AUDIT CODE (INPUT)</h2>
-                <textarea id="userInput" class="w-full h-64 bg-slate-900 p-4 font-mono text-xs border border-slate-700 rounded focus:outline-none" placeholder="Paste messy code here..."></textarea>
-            </div>
-            <div class="box-style relative">
-                <div id="lockOverlay" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center rounded-xl z-10 text-center">
-                    <div id="lockIcon" class="text-3xl mb-2">🔒</div>
-                    <div id="loader" class="hidden loading-spinner mb-4"></div>
-                    <p id="lockStatus" class="font-bold text-xs">Waiting for CEO Approval</p>
-                    <p class="text-[10px] text-slate-500 mt-2">ID: <span id="displayReqCode" class="text-blue-400"></span></p>
-                </div>
-                <h2 class="font-bold mb-2 text-green-400 text-sm">OPTIMIZED OUTPUT</h2>
-                <div id="optimizedCode" class="w-full h-64 bg-slate-900 p-4 font-mono text-xs overflow-auto text-slate-600 italic">
-                    // Encrypted...
-                </div>
-            </div>
-        </div>
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-            <div class="box-style border-b-2 border-red-500 py-4">
-                <p class="text-[9px] text-slate-500 uppercase">Worst Bill</p>
-                <p id="bill" class="text-lg font-bold">₹0.00</p>
-            </div>
-            <div class="box-style border-b-2 border-blue-500 py-4">
-                <p class="text-[9px] text-slate-500 uppercase">Savings</p>
-                <p id="savings" class="text-lg font-bold">₹0.00</p>
-            </div>
-            <div class="box-style border-b-2 border-green-500 py-4 bg-green-900/5">
-                <p class="text-[9px] text-green-500 uppercase">35% Share</p>
-                <p id="share" class="text-lg font-bold text-green-400">₹0.00</p>
-            </div>
-            <div class="box-style border-b-2 border-yellow-500 py-4">
-                <p class="text-[9px] text-slate-500 uppercase">Power</p>
-                <p id="power" class="text-lg font-bold">-- kWh</p>
-            </div>
-        </div>
-
-        <div class="grid md:grid-cols-2 gap-6">
-            <div class="box-style text-center">
-                <h3 class="font-bold mb-4 text-xs">PAYMENT & REQUEST</h3>
-                <div id="qrBox" class="bg-white p-2 inline-block rounded mb-4 shadow-lg"></div>
-                <button onclick="sendWhatsApp()" class="w-full bg-blue-600 py-3 rounded-xl font-bold text-xs uppercase">I've Paid - Request Approval</button>
-            </div>
-
-            <div class="box-style">
-                <h3 class="font-bold mb-4 text-xs text-yellow-500 text-center uppercase">CEO Login</h3>
-                <input type="password" id="adminKey" oninput="checkKey()" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-center text-sm font-mono" placeholder="Enter Admin Code">
-                
-                <div id="adminControls" class="hidden-panel mt-6 pt-6 border-t border-slate-700">
-                    <div class="flex gap-4 mb-4">
-                        <button onclick="handleRequest('APPROVE')" class="w-1/2 bg-green-600 text-white font-bold py-3 rounded-xl text-xs uppercase">Approve ✅</button>
-                        <button onclick="handleRequest('REJECT')" class="w-1/2 bg-red-600 text-white font-bold py-3 rounded-xl text-xs uppercase">Reject ❌</button>
-                    </div>
-                    <button id="dlBtn" onclick="downloadReport()" class="hidden w-full bg-white text-black py-2 rounded-xl text-xs font-bold mb-4">Download PDF Report</button>
-                    
-                    <div id="historyPanel" class="mt-4 bg-black/30 p-2 rounded-lg max-h-32 overflow-auto">
-                        <p class="text-[10px] text-slate-500 mb-2 uppercase font-bold">Audit Logs</p>
-                        <table class="w-full text-left text-[9px] font-mono">
-                            <tbody id="historyData"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const THE_KEY = "rubinaramjan@14";
-        let reqID = "REQ-" + Math.floor(1000 + Math.random() * 9000);
-        document.getElementById('displayReqCode').innerText = reqID;
-
-        // Unlock Admin Panel as you type
-        function checkKey() {
-            const val = document.getElementById('adminKey').value;
-            if(val === THE_KEY) {
-                document.getElementById('adminControls').style.display = 'block';
-            } else {
-                document.getElementById('adminControls').style.display = 'none';
+        window.checkAdminAuth = function() {
+            const input = document.getElementById('adminKey').value;
+            if(input === "rubinaramjan@14") {
+                document.getElementById('adminQueueSection').classList.remove('hidden');
+                syncRequests();
             }
-        }
+        };
 
-        document.getElementById('userInput').addEventListener('input', function(e) {
-            const val = e.target.value;
-            if(val.length > 5) {
-                const waste = (val.length * 0.5).toFixed(2);
-                const save = (waste * 0.7).toFixed(2);
-                const comm = (save * 0.35).toFixed(2);
-                const kwh = (val.length * 0.01).toFixed(3);
-                document.getElementById('bill').innerText = '₹' + waste;
-                document.getElementById('savings').innerText = '₹' + save;
-                document.getElementById('share').innerText = '₹' + comm;
-                document.getElementById('power').innerText = kwh + ' kWh';
-                const upi = `upi://pay?pa=sayyadsharrin0@okaxis&pn=Sharrin%20Sayyad&am=${comm}&cu=INR`;
-                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=130x130&data=${encodeURIComponent(upi)}" alt="QR">`;
-            }
-        });
-
-        function sendWhatsApp() {
+        window.sendRequest = function() {
             const amt = document.getElementById('share').innerText;
-            const msg = `ECOSTACK AI ALERT:\nID: ${reqID}\nPaid: ${amt}\n\nCEO Ma'am, please approve!`;
-            window.open(`https://wa.me/9096530829?text=${encodeURIComponent(msg)}`);
+            if(amt === "₹0.00") return alert("Pehle code audit karein!");
+            const reqID = "REQ-" + Math.floor(1000 + Math.random() * 9000);
+            push(ref(db, 'live_requests'), { id: reqID, amount: amt, status: 'PENDING' });
+            alert("Request Sent! ID: " + reqID);
+            window.open(`https://wa.me/9096530829?text=CEO%20Approve%20ID:%20${reqID}`);
+        };
+
+        function syncRequests() {
+            onValue(ref(db, 'live_requests'), (snap) => {
+                const container = document.getElementById('queue');
+                container.innerHTML = "";
+                const data = snap.val();
+                if(data) Object.keys(data).reverse().forEach(key => {
+                    const r = data[key];
+                    container.innerHTML += `<div class="p-3 border border-slate-700 mb-2 flex justify-between bg-slate-800 rounded-lg">
+                        <span class="text-xs font-bold text-blue-300">${r.id}<br><span class="text-green-400">${r.amount}</span></span>
+                        ${r.status==='PENDING' ? `<button onclick="approve('${key}')" class="bg-green-600 px-4 rounded text-[10px] font-bold">APPROVE</button>` : `<span class="text-[10px] text-slate-500 font-bold uppercase">${r.status}</span>`}
+                    </div>`;
+                });
+            });
         }
 
-        function handleRequest(action) {
-            if(action === 'APPROVE') {
-                document.getElementById('lockIcon').classList.add('hidden');
-                document.getElementById('loader').classList.remove('hidden');
-                document.getElementById('lockStatus').innerText = "AI OPTIMIZING...";
-                setTimeout(() => {
-                    document.getElementById('lockOverlay').style.display = 'none';
-                    document.getElementById('optimizedCode').innerText = "// SUCCESS: OPTIMIZED\n// ID: " + reqID + "\n\nfunction efficiency() { return true; }";
-                    document.getElementById('optimizedCode').classList.add('text-green-400');
-                    document.getElementById('dlBtn').classList.remove('hidden');
-                    addLog('APPROVED');
-                }, 3000);
-            } else {
-                alert("Request Rejected.");
-                addLog('REJECTED');
-            }
-        }
+        window.approve = function(key) {
+            update(ref(db, `live_requests/${key}`), { status: 'APPROVED' });
+            document.getElementById('lock').style.display = 'none';
+        };
 
-        function addLog(status) {
-            const now = new Date();
-            const color = status === 'APPROVED' ? 'text-green-400' : 'text-red-400';
-            const row = `<tr class="border-b border-slate-800"><td class="py-1">${reqID}</td><td class="py-1 ${color}">${status}</td></tr>`;
-            document.getElementById('historyData').innerHTML += row;
-        }
-
-        function downloadReport() {
-            const content = `ECOSTACK AI REPORT\nID: ${reqID}\nStatus: APPROVED\nAmt: ${document.getElementById('share').innerText}`;
-            const blob = new Blob([content], { type: 'text/plain' });
-            const link = document.createElement('a');
-            link.href = window.URL.createObjectURL(blob);
-            link.download = `Report_${reqID}.txt`;
-            link.click();
-        }
+        document.getElementById('userInput').addEventListener('input', (e) => {
+            const len = e.target.value.length;
+            const waste = (len * 0.45).toFixed(2);
+            const share = (waste * 0.35).toFixed(2);
+            document.getElementById('bill').innerText = "₹" + waste;
+            document.getElementById('share').innerText = "₹" + share;
+        });
     </script>
+</head>
+<body class="bg-slate-950 text-slate-200 p-4 font-sans">
+    <div class="max-w-md mx-auto space-y-4 text-center">
+        <h1 class="text-xl font-black text-blue-500 italic">ECOSTACK AI</h1>
+        <input type="password" id="adminKey" oninput="checkAdminAuth()" placeholder="Enter CEO Access Code" class="bg-slate-900 border border-blue-900/30 p-3 rounded-xl text-xs w-full text-center outline-none focus:border-blue-500">
+        
+        <div id="adminQueueSection" class="hidden bg-slate-900 p-4 rounded-2xl border border-blue-600 text-left shadow-2xl">
+            <p class="text-[10px] font-black text-blue-400 mb-3 tracking-widest uppercase">Live Approval Queue</p>
+            <div id="queue"></div>
+        </div>
+
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
+            <p class="text-[10px] text-red-500 font-black mb-2 uppercase text-left">Code Audit Input</p>
+            <textarea id="userInput" class="w-full h-32 bg-black/50 p-3 text-xs font-mono rounded-xl border border-slate-800 outline-none focus:border-red-500" placeholder="Paste code here..."></textarea>
+            <div class="flex justify-between mt-4 bg-black/30 p-3 rounded-lg border border-slate-800">
+                <div class="text-left"><p class="text-[8px] text-slate-500 uppercase">Waste Found</p><p id="bill" class="font-bold">₹0.00</p></div>
+                <div class="text-right"><p class="text-[8px] text-green-500 uppercase">CEO Share</p><p id="share" class="font-bold text-green-400">₹0.00</p></div>
+            </div>
+        </div>
+
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
+            <div id="lock" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center z-20">
+                <span class="text-2xl mb-2">🔒</span>
+                <p class="text-[10px] font-black tracking-tighter text-slate-400">WAITING FOR CEO APPROVAL</p>
+            </div>
+            <p class="text-[10px] text-green-400 font-black mb-2 uppercase text-left">AI Cleaned Output</p>
+            <div class="h-24 text-[10px] font-mono text-slate-500 italic p-2 bg-black/30 rounded-lg text-left">Optimized code will appear here after approval...</div>
+        </div>
+
+        <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-black text-xs shadow-lg transition-all active:scale-95">SEND REQUEST TO CEO</button>
+        <p class="text-[9px] text-slate-600 uppercase font-bold">Powered by Autostack AI Cloud</p>
+    </div>
 </body>
 </html>

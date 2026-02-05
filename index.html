@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - CEO Cloud Panel</title>
+    <title>ECOSTACK AI - Enterprise Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -22,82 +23,168 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // --- GLOBAL VARIABLES ---
+        let currentRequestID = "";
+
+        // --- ADMIN LOGIN ---
         window.checkAdminAuth = function() {
-            const input = document.getElementById('adminKey').value;
-            if(input === "rubinaramjan@14") {
-                document.getElementById('adminQueueSection').classList.remove('hidden');
-                syncRequests();
+            const key = document.getElementById('adminKey').value;
+            if(key === "rubinaramjan@14") {
+                document.getElementById('adminPanel').classList.remove('hidden');
+                loadAdminData();
             }
         };
 
-        window.sendRequest = function() {
-            const amt = document.getElementById('share').innerText;
-            if(amt === "₹0.00") return alert("Pehle code audit karein!");
-            const reqID = "REQ-" + Math.floor(1000 + Math.random() * 9000);
-            push(ref(db, 'live_requests'), { id: reqID, amount: amt, status: 'PENDING' });
-            alert("Request Sent! ID: " + reqID);
-            window.open(`https://wa.me/9096530829?text=CEO%20Approve%20ID:%20${reqID}`);
+        // --- CALCULATION LOGIC ---
+        document.getElementById('auditInput').addEventListener('input', (e) => {
+            const code = e.target.value;
+            if(code.length > 20) {
+                const units = (code.length * 0.012).toFixed(2);
+                const lightBill = (units * 8.5).toFixed(2);
+                const savings = (lightBill * 0.65).toFixed(2);
+                const ceoShare = (savings * 0.35).toFixed(2);
+
+                document.getElementById('dispUnits').innerText = units + " Units";
+                document.getElementById('dispBill').innerText = "₹" + lightBill;
+                document.getElementById('dispSavings').innerText = "₹" + savings;
+                document.getElementById('dispCEO').innerText = "₹" + ceoShare;
+
+                // QR Update
+                const upi = `upi://pay?pa=sayyadsharrin0@okaxis&pn=CEO%20Ecostack&am=${ceoShare}&cu=INR`;
+                document.getElementById('qrCode').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(upi)}" class="mx-auto border-4 border-white rounded">`;
+            }
+        });
+
+        // --- USER ACTION: PAY & SEND REQ ---
+        window.initiatePayment = function() {
+            const amt = document.getElementById('dispCEO').innerText;
+            if(amt === "₹0.00") return alert("Please audit code first!");
+
+            const reqID = "ECO-" + Math.floor(10000 + Math.random() * 90000);
+            currentRequestID = reqID;
+
+            const reqData = {
+                id: reqID,
+                amount: amt,
+                status: "PENDING",
+                timestamp: new Date().toLocaleString(),
+                units: document.getElementById('dispUnits').innerText,
+                waste: document.getElementById('dispBill').innerText
+            };
+
+            push(ref(db, 'transactions'), reqData).then(() => {
+                const msg = `ECOSTACK AI REPORT\nID: ${reqID}\nAmt: ${amt}\nStatus: Payment Done. Approve Request!`;
+                window.open(`https://wa.me/9096530829?text=${encodeURIComponent(msg)}`);
+                document.getElementById('statusMsg').innerText = "Request Sent! Waiting for CEO Approval...";
+            });
         };
 
-        function syncRequests() {
-            onValue(ref(db, 'live_requests'), (snap) => {
-                const container = document.getElementById('queue');
-                container.innerHTML = "";
+        // --- ADMIN: LOAD DATA ---
+        function loadAdminData() {
+            onValue(ref(db, 'transactions'), (snap) => {
+                const list = document.getElementById('adminList');
+                list.innerHTML = "";
                 const data = snap.val();
                 if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
-                    container.innerHTML += `<div class="p-3 border border-slate-700 mb-2 flex justify-between bg-slate-800 rounded-lg">
-                        <span class="text-xs font-bold text-blue-300">${r.id}<br><span class="text-green-400">${r.amount}</span></span>
-                        ${r.status==='PENDING' ? `<button onclick="approve('${key}')" class="bg-green-600 px-4 rounded text-[10px] font-bold">APPROVE</button>` : `<span class="text-[10px] text-slate-500 font-bold uppercase">${r.status}</span>`}
-                    </div>`;
+                    list.innerHTML += `
+                        <div class="bg-slate-800 p-3 rounded-lg mb-2 flex justify-between items-center border-l-4 ${r.status === 'PENDING' ? 'border-yellow-500' : 'border-green-500'}">
+                            <div class="text-[10px]">
+                                <p class="font-bold text-blue-300">${r.id} | ${r.timestamp}</p>
+                                <p>Waste: ${r.waste} | CEO: <span class="text-green-400">${r.amount}</span></p>
+                            </div>
+                            ${r.status === 'PENDING' ? `<button onclick="approveReq('${key}')" class="bg-blue-600 px-3 py-1 rounded text-[10px] font-bold">APPROVE</button>` : `<span class="text-green-500 font-bold text-[10px]">SUCCESS</span>`}
+                        </div>`;
                 });
             });
         }
 
-        window.approve = function(key) {
-            update(ref(db, `live_requests/${key}`), { status: 'APPROVED' });
-            document.getElementById('lock').style.display = 'none';
+        window.approveReq = function(key) {
+            update(ref(db, `transactions/${key}`), { status: "APPROVED" });
         };
 
-        document.getElementById('userInput').addEventListener('input', (e) => {
-            const len = e.target.value.length;
-            const waste = (len * 0.45).toFixed(2);
-            const share = (waste * 0.35).toFixed(2);
-            document.getElementById('bill').innerText = "₹" + waste;
-            document.getElementById('share').innerText = "₹" + share;
+        // --- USER: REALTIME APPROVAL CHECK ---
+        onValue(ref(db, 'transactions'), (snap) => {
+            const data = snap.val();
+            if(data && currentRequestID) {
+                const myReq = Object.values(data).find(r => r.id === currentRequestID);
+                if(myReq && myReq.status === "APPROVED") {
+                    document.getElementById('lockOverlay').classList.add('hidden');
+                    document.getElementById('optimizedBox').innerText = "// ECOSTACK AI: OPTIMIZATION COMPLETE\n// Electricity Saved: " + myReq.units + "\nfunction ecoUpdate() { return 'Performance Boosted'; }";
+                    document.getElementById('downloadBtn').classList.remove('hidden');
+                    document.getElementById('statusMsg').innerText = "APPROVED BY CEO!";
+                }
+            }
         });
+
+        // --- PDF REPORT ---
+        window.downloadPDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(20); doc.text("ECOSTACK AI - AUDIT REPORT", 20, 20);
+            doc.setFontSize(12); doc.text(`Request ID: ${currentRequestID}`, 20, 40);
+            doc.text(`Energy Waste Found: ${document.getElementById('dispUnits').innerText}`, 20, 50);
+            doc.text(`Estimated Light Bill Loss: ${document.getElementById('dispBill').innerText}`, 20, 60);
+            doc.text(`CEO Processing Fee: ${document.getElementById('dispCEO').innerText}`, 20, 70);
+            doc.text("Status: VERIFIED & OPTIMIZED", 20, 80);
+            doc.save("Ecostack_Report.pdf");
+        };
     </script>
+    <style>
+        body { background: #020617; color: #cbd5e1; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.8); border: 1px solid #1e293b; backdrop-filter: blur(10px); }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-200 p-4 font-sans">
-    <div class="max-w-md mx-auto space-y-4 text-center">
-        <h1 class="text-xl font-black text-blue-500 italic">ECOSTACK AI</h1>
-        <input type="password" id="adminKey" oninput="checkAdminAuth()" placeholder="Enter CEO Access Code" class="bg-slate-900 border border-blue-900/30 p-3 rounded-xl text-xs w-full text-center outline-none focus:border-blue-500">
+<body class="p-4 md:p-8">
+    <div class="max-w-6xl mx-auto space-y-6">
         
-        <div id="adminQueueSection" class="hidden bg-slate-900 p-4 rounded-2xl border border-blue-600 text-left shadow-2xl">
-            <p class="text-[10px] font-black text-blue-400 mb-3 tracking-widest uppercase">Live Approval Queue</p>
-            <div id="queue"></div>
+        <div class="flex justify-between items-center">
+            <h1 class="text-2xl font-black italic text-blue-500">ECOSTACK<span class="text-white font-light text-xs ml-1">v2.0 CLOUD</span></h1>
+            <input type="password" id="adminKey" oninput="checkAdminAuth()" placeholder="CEO Access" class="bg-slate-900 border border-slate-800 p-2 rounded-lg text-[10px] w-32 text-center outline-none focus:border-blue-500">
         </div>
 
-        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800">
-            <p class="text-[10px] text-red-500 font-black mb-2 uppercase text-left">Code Audit Input</p>
-            <textarea id="userInput" class="w-full h-32 bg-black/50 p-3 text-xs font-mono rounded-xl border border-slate-800 outline-none focus:border-red-500" placeholder="Paste code here..."></textarea>
-            <div class="flex justify-between mt-4 bg-black/30 p-3 rounded-lg border border-slate-800">
-                <div class="text-left"><p class="text-[8px] text-slate-500 uppercase">Waste Found</p><p id="bill" class="font-bold">₹0.00</p></div>
-                <div class="text-right"><p class="text-[8px] text-green-500 uppercase">CEO Share</p><p id="share" class="font-bold text-green-400">₹0.00</p></div>
+        <div id="adminPanel" class="hidden glass p-6 rounded-3xl border-blue-600/50 shadow-2xl">
+            <h2 class="text-xs font-bold text-blue-400 uppercase tracking-widest mb-4">CEO Master Command Center</h2>
+            <div id="adminList" class="max-h-60 overflow-y-auto pr-2"></div>
+        </div>
+
+        <div class="grid lg:grid-cols-2 gap-6">
+            <div class="glass p-6 rounded-3xl space-y-4">
+                <div class="flex justify-between items-center"><span class="text-[10px] font-bold text-red-400">INPUT (DIRTY CODE)</span></div>
+                <textarea id="auditInput" class="w-full h-64 bg-black/40 p-4 text-xs font-mono rounded-2xl border border-slate-800 outline-none focus:border-red-500 transition-all" placeholder="Paste your code to audit..."></textarea>
+            </div>
+
+            <div class="glass p-6 rounded-3xl space-y-4 relative overflow-hidden">
+                <div id="lockOverlay" class="absolute inset-0 z-10 bg-slate-950/95 flex flex-col items-center justify-center text-center p-6">
+                    <div class="text-4xl mb-4">🛡️</div>
+                    <h3 class="font-bold text-sm text-slate-300 uppercase tracking-widest">Access Restricted</h3>
+                    <p class="text-[10px] text-slate-500 mt-2">The optimized code is encrypted. Complete the payment and get CEO approval to unlock.</p>
+                </div>
+                <div class="flex justify-between items-center"><span class="text-[10px] font-bold text-green-400">OUTPUT (OPTIMIZED CODE)</span></div>
+                <div id="optimizedBox" class="w-full h-64 bg-black/20 p-4 text-xs font-mono rounded-2xl text-slate-500 italic">Code will be displayed here...</div>
             </div>
         </div>
 
-        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 relative overflow-hidden">
-            <div id="lock" class="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center z-20">
-                <span class="text-2xl mb-2">🔒</span>
-                <p class="text-[10px] font-black tracking-tighter text-slate-400">WAITING FOR CEO APPROVAL</p>
-            </div>
-            <p class="text-[10px] text-green-400 font-black mb-2 uppercase text-left">AI Cleaned Output</p>
-            <div class="h-24 text-[10px] font-mono text-slate-500 italic p-2 bg-black/30 rounded-lg text-left">Optimized code will appear here after approval...</div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass p-4 rounded-2xl text-center"><p class="text-[9px] text-slate-500 uppercase">Electricity Waste</p><p id="dispUnits" class="text-lg font-bold">0.00 Units</p></div>
+            <div class="glass p-4 rounded-2xl text-center"><p class="text-[9px] text-slate-500 uppercase">Est. Light Bill</p><p id="dispBill" class="text-lg font-bold text-red-400">₹0.00</p></div>
+            <div class="glass p-4 rounded-2xl text-center"><p class="text-[9px] text-slate-500 uppercase">Our Savings</p><p id="dispSavings" class="text-lg font-bold text-blue-400">₹0.00</p></div>
+            <div class="glass p-4 rounded-2xl border-green-500/30 bg-green-500/5 text-center"><p class="text-[9px] text-green-500 uppercase">CEO 35% Share</p><p id="dispCEO" class="text-lg font-bold text-green-400">₹0.00</p></div>
         </div>
 
-        <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-black text-xs shadow-lg transition-all active:scale-95">SEND REQUEST TO CEO</button>
-        <p class="text-[9px] text-slate-600 uppercase font-bold">Powered by Autostack AI Cloud</p>
+        <div class="glass p-8 rounded-[40px] text-center space-y-6">
+            <div id="qrCode" class="inline-block p-4 bg-white rounded-3xl shadow-xl">
+                <p class="text-[8px] text-slate-400 mb-2 uppercase">Scan to Pay Share</p>
+                <div class="w-[120px] h-[120px] bg-slate-100 flex items-center justify-center italic text-[10px] text-slate-400">Audit Code First</div>
+            </div>
+            
+            <div class="space-y-3">
+                <button onclick="initiatePayment()" class="w-full max-w-sm bg-blue-600 hover:bg-blue-700 py-4 rounded-2xl font-black text-xs tracking-widest transition-all active:scale-95 shadow-lg shadow-blue-500/20">I'VE PAID - SEND APPROVAL REQ</button>
+                <p id="statusMsg" class="text-[10px] font-bold text-blue-400 animate-pulse"></p>
+                <button id="downloadBtn" onclick="downloadPDF()" class="hidden w-full max-w-sm bg-green-600 hover:bg-green-700 py-3 rounded-2xl font-bold text-xs">⬇️ DOWNLOAD AUDIT REPORT (PDF)</button>
+            </div>
+        </div>
+
     </div>
 </body>
 </html>

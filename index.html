@@ -24,6 +24,7 @@
 
         let currentReqID = "";
         let globalOptimizedCode = "";
+        let originalUserCode = ""; 
 
         window.checkAdminAuth = function() {
             const key = document.getElementById('adminKey').value;
@@ -37,6 +38,7 @@
         document.getElementById('auditInput').addEventListener('input', (e) => {
             const code = e.target.value;
             if(code.length > 5) {
+                originalUserCode = code; 
                 const units = (code.length * 0.042).toFixed(2);
                 const worstBill = (units * 12.5).toFixed(2);
                 const optimizedBill = (worstBill * 0.30).toFixed(2); 
@@ -52,7 +54,7 @@
                 const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${ceoFee}&cu=INR`;
                 document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl">`;
                 
-                globalOptimizedCode = `/* ECOSTACK AI: OPTIMIZED */\n/* Electricity Saved: ${units} Units */\n\n${code}\n\n/* Verified */`;
+                globalOptimizedCode = `/* ECOSTACK AI: OPTIMIZED VERSION */\n/* Original Energy Usage: ${units} Units */\n\n${code}\n\n/* Optimized & Secured by CEO ECOSTACK AI */`;
             }
         });
 
@@ -63,38 +65,32 @@
             currentReqID = id;
 
             push(ref(db, 'history'), {
-                id: id, fee: fee, saving: document.getElementById('dispTotalSaving').innerText,
-                status: "PENDING", date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString(), code: globalOptimizedCode
+                id: id,
+                fee: fee,
+                saving: document.getElementById('dispTotalSaving').innerText,
+                worstCode: originalUserCode, 
+                optimizedCode: globalOptimizedCode, 
+                status: "PENDING",
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString()
             }).then(() => {
                 window.open(`https://wa.me/9096530829?text=CEO%20Approve%20ID:${id}%20Amt:${fee}`);
                 document.getElementById('statusTxt').innerText = "Waiting for CEO Approval...";
             });
         };
 
-        // --- PDF DOWNLOAD FUNCTION (YEH MISSING THA) ---
         window.genPDF = function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            
-            // PDF Design
             doc.setFillColor(2, 6, 23); doc.rect(0, 0, 210, 297, 'F');
             doc.setTextColor(59, 130, 246); doc.setFontSize(28); doc.text("ECOSTACK AI", 20, 35);
             doc.setTextColor(255, 255, 255); doc.setFontSize(10);
             doc.text(`REPORT ID: ${currentReqID}`, 20, 50);
             doc.text(`DATE: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 56);
             doc.setDrawColor(59, 130, 246); doc.line(20, 65, 190, 65);
-            
             doc.text("SAVINGS ANALYSIS:", 20, 80);
             doc.text(`- Electricity Used: ${document.getElementById('dispUnits').innerText}`, 25, 90);
-            doc.text(`- Worst Server Bill: ${document.getElementById('dispWorst').innerText}`, 25, 100);
-            doc.setTextColor(34, 197, 94);
-            doc.text(`- Net Monthly Savings: ${document.getElementById('dispTotalSaving').innerText}`, 25, 110);
-            
-            doc.setTextColor(255, 255, 255);
-            doc.text("OPTIMIZED CODE PREVIEW:", 20, 130);
-            doc.setFontSize(8);
-            doc.text(globalOptimizedCode.substring(0, 500), 20, 140);
-            
+            doc.text(`- Total Monthly Savings: ${document.getElementById('dispTotalSaving').innerText}`, 25, 100);
             doc.save(`Ecostack_Report_${currentReqID}.pdf`);
         };
 
@@ -105,11 +101,23 @@
                 const data = snap.val();
                 if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
-                    cont.innerHTML += `<div class="bg-slate-900 p-4 rounded-2xl mb-3 flex justify-between items-center border border-slate-800">
-                        <div class="text-[10px]"><p class="text-blue-400 font-bold">${r.id}</p><p>Fee: ${r.fee}</p></div>
-                        <div class="flex gap-2">
-                            ${r.status === 'PENDING' ? `<button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-3 py-1 rounded text-[10px]">Approve</button>
-                            <button onclick="updateStatus('${key}', 'REJECTED')" class="bg-red-600 px-3 py-1 rounded text-[10px]">Reject</button>` : `<span class="text-[10px] uppercase">${r.status}</span>`}
+                    cont.innerHTML += `
+                    <div class="bg-slate-900 p-5 rounded-3xl mb-4 border border-slate-800">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="text-[10px]">
+                                <p class="text-blue-400 font-bold">${r.id} | ${r.date} ${r.time}</p>
+                                <p class="text-white">Fee: ${r.fee} | Saving: ${r.saving}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                ${r.status === 'PENDING' ? `
+                                    <button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-3 py-1 rounded-lg text-[10px]">Approve</button>
+                                    <button onclick="updateStatus('${key}', 'REJECTED')" class="bg-red-600 px-3 py-1 rounded-lg text-[10px]">Reject</button>
+                                ` : `<span class="text-[10px] uppercase font-bold text-slate-500">${r.status}</span>`}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <button onclick="alert('CLIENT ORIGINAL CODE: \\n\\n${r.worstCode.substring(0, 500)}...')" class="bg-slate-800 text-[9px] py-2 rounded-xl text-red-400 border border-red-900/30">View Client's Code</button>
+                            <button onclick="alert('OUR OPTIMIZED CODE: \\n\\n${r.optimizedCode.substring(0, 500)}...')" class="bg-slate-800 text-[9px] py-2 rounded-xl text-green-400 border border-green-900/30">View Our Result</button>
                         </div>
                     </div>`;
                 });
@@ -123,7 +131,7 @@
                 const myReq = Object.values(data).find(r => r.id === currentReqID);
                 if(myReq && myReq.status === "APPROVED") {
                     document.getElementById('lock').classList.add('hidden');
-                    document.getElementById('outputBox').innerText = myReq.code;
+                    document.getElementById('outputBox').innerText = myReq.optimizedCode;
                     document.getElementById('pdfBtn').classList.remove('hidden');
                 }
             }
@@ -131,7 +139,11 @@
     </script>
 </head>
 <body class="bg-[#020617] text-slate-300 font-sans p-4">
-    <div id="adminDashboard" class="hidden max-w-4xl mx-auto py-10"><h1 class="text-2xl font-black text-blue-500 mb-6 italic">CEO MASTER PANEL</h1><div id="historyList"></div><button onclick="location.reload()" class="bg-slate-800 px-4 py-2 rounded-xl text-xs">Logout</button></div>
+    <div id="adminDashboard" class="hidden max-w-4xl mx-auto py-10">
+        <h1 class="text-2xl font-black text-blue-500 mb-6 italic border-b border-slate-800 pb-4">CEO EVIDENCE CENTER</h1>
+        <div id="historyList"></div>
+        <button onclick="location.reload()" class="mt-4 bg-slate-800 px-4 py-2 rounded-xl text-xs uppercase font-bold">Logout</button>
+    </div>
 
     <div id="mainUserUI" class="max-w-7xl mx-auto space-y-6">
         <div class="flex justify-between items-center bg-slate-900/40 p-5 rounded-[30px] border border-slate-800">
@@ -140,9 +152,9 @@
         </div>
 
         <div class="grid lg:grid-cols-2 gap-6">
-            <textarea id="auditInput" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-5 text-xs font-mono rounded-[35px] outline-none" placeholder="Paste unoptimized code here..."></textarea>
+            <textarea id="auditInput" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-5 text-xs font-mono rounded-[35px] outline-none focus:border-blue-500 transition-all" placeholder="Paste unoptimized code here..."></textarea>
             <div class="relative">
-                <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[35px] border border-slate-800 text-center">
+                <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[35px] border border-slate-800 text-center backdrop-blur-sm">
                     <p class="text-4xl mb-2">🔒</p><p class="text-[10px] font-black text-slate-500 uppercase tracking-widest" id="statusTxt">Awaiting CEO Approval</p>
                 </div>
                 <div id="outputBox" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-5 text-xs font-mono rounded-[35px] text-slate-600 overflow-y-auto italic">Optimized code will appear here...</div>
@@ -150,35 +162,18 @@
         </div>
 
         <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg">
-                <p class="text-[9px] text-yellow-500 font-bold uppercase mb-1">Electricity Used</p>
-                <p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p>
-            </div>
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg">
-                <p class="text-[9px] text-red-500 font-bold uppercase mb-1">Worst Server Bill</p>
-                <p id="dispWorst" class="text-lg font-black text-white">₹0.00</p>
-            </div>
-            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg">
-                <p class="text-[9px] text-blue-500 font-bold uppercase mb-1">Optimized Bill</p>
-                <p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p>
-            </div>
-            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px] text-center shadow-lg">
-                <p class="text-[9px] text-blue-400 font-bold uppercase mb-1">Total Saving</p>
-                <p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p>
-            </div>
-            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px] text-center shadow-lg">
-                <p class="text-[9px] text-green-500 font-bold uppercase mb-1">CEO 35% Fee</p>
-                <p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p>
-            </div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-yellow-500 font-bold uppercase mb-1">Electricity Used</p><p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-red-500 font-bold uppercase mb-1">Worst Server Bill</p><p id="dispWorst" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-blue-500 font-bold uppercase mb-1">Optimized Bill</p><p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-blue-400 font-bold uppercase mb-1">Total Saving</p><p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px] text-center shadow-lg"><p class="text-[9px] text-green-500 font-bold uppercase mb-1">CEO 35% Fee</p><p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p></div>
         </div>
 
         <div class="grid md:grid-cols-3 gap-6 items-center bg-slate-900/30 p-8 rounded-[40px] border border-slate-800/50">
-            <div id="qrBox" class="bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-h-[160px] shadow-2xl mx-auto w-full max-w-[170px]">
-                <p class="text-[9px] text-slate-400 font-bold uppercase italic">Scan to Pay</p>
-            </div>
+            <div id="qrBox" class="bg-white p-4 rounded-3xl flex flex-col items-center justify-center min-h-[160px] shadow-2xl mx-auto w-full max-w-[170px] border border-slate-200"><p class="text-[9px] text-slate-400 font-bold uppercase italic">Scan to Pay</p></div>
             <div class="md:col-span-2 space-y-4">
                 <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-700 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">I'VE PAID - REQUEST APPROVAL</button>
-                <button id="pdfBtn" onclick="genPDF()" class="hidden w-full bg-white text-slate-950 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">⬇️ DOWNLOAD REPORT (PDF)</button>
+                <button id="pdfBtn" onclick="genPDF()" class="hidden w-full bg-white text-slate-950 py-5 rounded-[25px] font-black text-xs tracking-widest transition-all">⬇️ DOWNLOAD REPORT (PDF)</button>
             </div>
         </div>
     </div>

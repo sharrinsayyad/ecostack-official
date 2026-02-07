@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - CEO Autonomous Suite</title>
+    <title>ECOSTACK AI - CEO Enterprise Suite</title>
     
     <script>
         document.oncontextmenu = () => false;
@@ -13,15 +13,18 @@
     </script>
 
     <style>
-        body { -webkit-user-select: none; user-select: none; background-color: #020617; font-family: 'Inter', sans-serif; color: #cbd5e1; }
-        .glass-panel { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .glow-text { text-shadow: 0 0 10px rgba(59, 130, 246, 0.5); }
+        body { -webkit-user-select: none; user-select: none; background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0",
@@ -34,107 +37,148 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let currentFee = 0;
-        let detectedScale = "Individual";
+        let currentReqID = "";
+        let globalFee = 0;
+        let autoServers = 1;
 
-        // CEO SMART LOGIC: AUTO-DETECTION ENGINE
-        function runAutonomousAudit() {
-            const code = document.getElementById('auditInput').value;
-            if(code.length < 20) return;
-
-            let serverMultiplier = 1;
+        // SMART DETECTION LOGIC
+        function analyzeInfrastructure(code) {
+            let srv = 1;
             const len = code.length;
+            if(len > 4000) srv = 10;
+            if(len > 15000) srv = 50;
+            if(len > 40000) srv = 200;
 
-            // Automatic Scaling Logic (Bina bataye servers badhana)
-            if (len > 3000) { serverMultiplier = 10; detectedScale = "Professional"; }
-            if (len > 15000) { serverMultiplier = 50; detectedScale = "Enterprise"; }
-            if (len > 50000) { serverMultiplier = 250; detectedScale = "Global Data Center"; }
-
-            // Keyword based boost
-            const techKeywords = ['kubernetes','cluster','distributed','sharding','microservice','aws','azure'];
-            techKeywords.forEach(word => {
-                if(code.toLowerCase().includes(word)) serverMultiplier += 5;
-            });
-
-            const baseUnits = (len * 0.042);
-            const totalSaving = (baseUnits * 12.5 * 0.35 * serverMultiplier).toFixed(2);
-            currentFee = (totalSaving * 0.35).toFixed(2);
-
-            // Update UI
-            document.getElementById('dispScale').innerText = detectedScale + " (" + serverMultiplier + " Units)";
-            document.getElementById('dispSaving').innerText = "₹" + totalSaving;
-            document.getElementById('dispFee').innerText = "₹" + currentFee;
-            
-            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${currentFee}&cu=INR`;
-            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl">`;
+            const techTerms = ['kubernetes', 'cluster', 'aws', 'distributed', 'microservice', 'load-balancer'];
+            techTerms.forEach(t => { if(code.toLowerCase().includes(t)) srv += 5; });
+            return srv;
         }
 
-        document.getElementById('auditInput').addEventListener('input', runAutonomousAudit);
-
-        window.sendRequest = function() {
-            if(currentFee <= 0) return alert("Please paste valid server code.");
-            const reqID = "ECO-" + Math.floor(1000 + Math.random() * 9000);
-            push(ref(db, 'history'), {
-                id: reqID, fee: currentFee, scale: detectedScale, status: "PENDING", date: new Date().toLocaleDateString()
-            }).then(() => {
-                window.open(`https://wa.me/9096530829?text=CEO%20Audit%20Request%0AID:${reqID}%0AAmt:₹${currentFee}%0AScale:${detectedScale}`);
-            });
-        };
-        
-        // Admin Login
         window.checkAdmin = function() {
             if(document.getElementById('adminKey').value === "rubinaramjan@14") {
                 document.getElementById('mainUI').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadHistory();
             }
         };
+
+        function runAudit() {
+            const code = document.getElementById('auditInput').value;
+            if(code.length < 15) return;
+
+            autoServers = analyzeInfrastructure(code);
+            const unitsPerSrv = (code.length * 0.042);
+            const totalWorst = (unitsPerSrv * 12.5 * autoServers);
+            const totalSaving = (totalWorst * 0.35);
+            globalFee = (totalSaving * 0.35).toFixed(2);
+
+            // Update UI
+            document.getElementById('infraType').innerText = autoServers > 20 ? "ENTERPRISE SCALE" : "PROFESSIONAL SCALE";
+            document.getElementById('srvCount').innerText = autoServers + " Nodes Detected";
+            document.getElementById('dispUnits').innerText = (unitsPerSrv * autoServers).toFixed(0) + " kWh";
+            document.getElementById('dispWorst').innerText = "₹" + totalWorst.toFixed(2);
+            document.getElementById('dispSaving').innerText = "₹" + totalSaving.toFixed(2);
+            document.getElementById('dispFee').innerText = "₹" + globalFee;
+            
+            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${globalFee}&cu=INR`;
+            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl shadow-lg">`;
+        }
+
+        document.getElementById('auditInput').addEventListener('input', runAudit);
+
+        window.sendRequest = function() {
+            if(globalFee <= 0) return alert("Audit code first!");
+            currentReqID = "ECO-" + Math.floor(1000 + Math.random() * 9999);
+            push(ref(db, 'history'), {
+                id: currentReqID, fee: globalFee, servers: autoServers, status: "PENDING", date: new Date().toLocaleDateString()
+            }).then(() => {
+                window.open(`https://wa.me/9096530829?text=CEO%20Audit%20Verification%20Required%0AID:${currentReqID}%0AFee:₹${globalFee}%0AServers:${autoServers}`);
+                document.getElementById('statusTxt').innerText = "Awaiting CEO Approval...";
+            });
+        };
+
+        function loadHistory() {
+            onValue(ref(db, 'history'), (snap) => {
+                const cont = document.getElementById('historyList');
+                cont.innerHTML = "";
+                const data = snap.val();
+                if(data) Object.keys(data).reverse().forEach(key => {
+                    const r = data[key];
+                    cont.innerHTML += `<div class="bg-slate-900 p-4 rounded-2xl mb-2 border border-slate-800 flex justify-between items-center">
+                        <span class="text-xs font-bold">${r.id} - ₹${r.fee}</span>
+                        <button onclick="updateStatus('${key}', 'APPROVED')" class="bg-blue-600 px-3 py-1 rounded-lg text-[10px]">Approve</button>
+                    </div>`;
+                });
+            });
+        }
+        window.updateStatus = (key, status) => update(ref(db, `history/${key}`), { status: status });
     </script>
 </head>
-<body class="p-4 md:p-8">
-    <div id="adminPanel" class="hidden max-w-2xl mx-auto py-20 text-center">
-        <h1 class="text-3xl font-bold text-blue-500 mb-6">CEO ADMIN ACCESS</h1>
-        <p class="text-slate-500">History loading from Firebase...</p>
-        <button onclick="location.reload()" class="mt-10 text-xs underline">Back to Terminal</button>
+<body class="p-4 md:p-6">
+
+    <div id="adminDashboard" class="hidden max-w-2xl mx-auto py-10">
+        <h1 class="text-2xl font-black text-blue-500 mb-6">CEO EVIDENCE CENTER</h1>
+        <div id="historyList"></div>
+        <button onclick="location.reload()" class="mt-4 text-xs text-slate-500 italic">Logout</button>
     </div>
 
-    <div id="mainUI" class="max-w-6xl mx-auto space-y-8">
-        <div class="flex justify-between items-center glass-panel p-6 rounded-[30px]">
+    <div id="mainUI" class="max-w-7xl mx-auto space-y-6">
+        
+        <div class="flex justify-between items-center glass p-6 rounded-[35px]">
             <div>
-                <h1 class="text-2xl font-black text-blue-500 italic glow-text">ECOSTACK AI</h1>
-                <p class="text-[10px] text-slate-500 font-bold tracking-[0.3em]">AUTONOMOUS OPTIMIZATION</p>
+                <h1 class="text-3xl font-black italic text-blue-500">ECOSTACK AI</h1>
+                <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Autonomous Optimization Lab</p>
             </div>
-            <input type="password" id="adminKey" oninput="checkAdmin()" placeholder="CEO Login" class="bg-black/50 border border-slate-800 p-3 rounded-2xl text-[10px] w-32 text-center outline-none focus:border-blue-500">
+            <input type="password" id="adminKey" oninput="checkAdmin()" placeholder="CEO Private Login" class="bg-black/40 border border-slate-800 p-3 rounded-2xl text-[10px] w-36 text-center outline-none focus:border-blue-500">
         </div>
 
-        <div class="grid lg:grid-cols-2 gap-8">
-            <div class="space-y-4">
-                <label class="text-[10px] font-bold text-slate-500 ml-2 uppercase">Server Source Code</p>
-                <textarea id="auditInput" class="w-full h-96 bg-slate-900/40 border border-slate-800 p-6 text-[11px] font-mono rounded-[40px] outline-none focus:border-blue-500/50 transition-all" placeholder="Paste backend logic here..."></textarea>
+        <div class="grid lg:grid-cols-2 gap-6">
+            <div class="space-y-3">
+                <p class="text-[10px] font-bold text-slate-500 ml-4">INPUT: BACKEND INFRASTRUCTURE CODE</p>
+                <textarea id="auditInput" class="w-full h-80 bg-slate-900/50 border border-slate-800 p-6 text-[11px] font-mono rounded-[45px] outline-none focus:border-blue-500/30 transition-all" placeholder="Paste server logic here..."></textarea>
             </div>
             
-            <div class="space-y-6">
-                <div class="glass-panel p-8 rounded-[40px] border-l-4 border-l-blue-500">
-                    <p class="text-[10px] font-bold text-slate-500 mb-2 uppercase">Infrastructure Detected</p>
-                    <p id="dispScale" class="text-2xl font-black text-white italic">Waiting for analysis...</p>
-                    <div class="mt-6 grid grid-cols-2 gap-4">
-                        <div class="bg-black/30 p-4 rounded-3xl border border-slate-800">
-                            <p class="text-[9px] text-slate-500 uppercase font-bold">Projected Saving</p>
-                            <p id="dispSaving" class="text-xl font-black text-green-500">₹0.00</p>
-                        </div>
-                        <div class="bg-blue-500/10 p-4 rounded-3xl border border-blue-500/20">
-                            <p class="text-[9px] text-blue-400 uppercase font-bold">Optimization Fee</p>
-                            <p id="dispFee" class="text-xl font-black text-blue-500">₹0.00</p>
-                        </div>
-                    </div>
+            <div class="relative space-y-3">
+                <p class="text-[10px] font-bold text-slate-500 ml-4">OUTPUT: OPTIMIZED ARCHITECTURE</p>
+                <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[45px] border border-slate-800 mt-7">
+                    <div class="bg-blue-600/10 p-5 rounded-full mb-3 text-2xl">🔒</div>
+                    <p class="text-[10px] font-black text-slate-600 tracking-widest uppercase" id="statusTxt">CEO Verification Pending</p>
                 </div>
+                <div class="w-full h-80 bg-slate-900/50 border border-slate-800 p-6 text-[11px] font-mono rounded-[45px] text-green-500/60 overflow-y-auto italic">Analyzing code patterns...</div>
+            </div>
+        </div>
 
-                <div class="glass-panel p-8 rounded-[40px] flex flex-col items-center justify-center gap-6">
-                    <div id="qrBox" class="bg-white p-4 rounded-3xl shadow-2xl">
-                        <div class="w-[150px] h-[150px] flex items-center justify-center text-[10px] text-slate-400 font-bold text-center">AI ANALYZER<br>READY</div>
-                    </div>
-                    <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-3xl font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">REQUEST CEO VERIFICATION</button>
-                    <p class="text-[9px] text-slate-600 text-center italic">Advanced patterns scan active. Fraudulent inputs will be auto-flagged.</p>
-                </div>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div class="glass p-5 rounded-[30px] text-center border-b-2 border-b-yellow-500">
+                <p class="text-[9px] text-slate-500 font-bold uppercase">Infrastructure</p>
+                <p id="infraType" class="text-xs font-black text-white mt-1 italic">Waiting...</p>
+                <p id="srvCount" class="text-[8px] text-blue-400 font-bold">0 Nodes</p>
+            </div>
+            <div class="glass p-5 rounded-[30px] text-center">
+                <p class="text-[9px] text-slate-500 font-bold uppercase">Energy Save</p>
+                <p id="dispUnits" class="text-lg font-black text-white mt-1">0 kWh</p>
+            </div>
+            <div class="glass p-5 rounded-[30px] text-center">
+                <p class="text-[9px] text-slate-500 font-bold uppercase">Worst Bill</p>
+                <p id="dispWorst" class="text-lg font-black text-white mt-1">₹0.00</p>
+            </div>
+            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[30px] text-center">
+                <p class="text-[9px] text-blue-400 font-bold uppercase">Total Saving</p>
+                <p id="dispSaving" class="text-lg font-black text-white mt-1">₹0.00</p>
+            </div>
+            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[30px] text-center">
+                <p class="text-[9px] text-green-500 font-bold uppercase">CEO Fee</p>
+                <p id="dispFee" class="text-lg font-black text-green-400 mt-1">₹0.00</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 items-center glass p-8 rounded-[50px]">
+            <div id="qrBox" class="bg-white p-4 rounded-3xl w-40 h-40 mx-auto shadow-2xl flex items-center justify-center">
+                <p class="text-[9px] text-slate-400 font-bold text-center">AI ANALYZER READY</p>
+            </div>
+            <div class="md:col-span-2 space-y-4">
+                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-[30px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">REQUEST CEO VERIFICATION</button>
+                <p class="text-[9px] text-center text-slate-500 italic uppercase tracking-tighter">Automatic Infrastructure Scaling Active - Powered by ECOSTACK AI</p>
             </div>
         </div>
     </div>

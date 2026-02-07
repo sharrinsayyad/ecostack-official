@@ -39,21 +39,8 @@
 
         let currentReqID = "";
         let globalFee = 0;
-        let autoServers = 1;
 
-        // SMART DETECTION LOGIC
-        function analyzeInfrastructure(code) {
-            let srv = 1;
-            const len = code.length;
-            if(len > 4000) srv = 10;
-            if(len > 15000) srv = 50;
-            if(len > 40000) srv = 200;
-
-            const techTerms = ['kubernetes', 'cluster', 'aws', 'distributed', 'microservice', 'load-balancer'];
-            techTerms.forEach(t => { if(code.toLowerCase().includes(t)) srv += 5; });
-            return srv;
-        }
-
+        // ADMIN LOGIN
         window.checkAdmin = function() {
             if(document.getElementById('adminKey').value === "rubinaramjan@14") {
                 document.getElementById('mainUI').classList.add('hidden');
@@ -62,22 +49,24 @@
             }
         };
 
+        // NEW LOGIC INTEGRATED WITH OLD MANUAL INPUT
         function runAudit() {
             const code = document.getElementById('auditInput').value;
+            const userServers = parseInt(document.getElementById('serverCount').value) || 1; // Purana Manual Logic
+            
             if(code.length < 15) return;
 
-            autoServers = analyzeInfrastructure(code);
+            // Naya Math Logic: Full Bill Saving model
             const unitsPerSrv = (code.length * 0.042);
-            const totalWorst = (unitsPerSrv * 12.5 * autoServers);
-            const totalSaving = (totalWorst * 0.35);
-            globalFee = (totalSaving * 0.35).toFixed(2);
+            const totalMonthlyBill = (unitsPerSrv * 12.5 * userServers);
+            
+            // Commission calculation: 35% of the total server bill
+            globalFee = (totalMonthlyBill * 0.35).toFixed(2);
 
-            // Update UI
-            document.getElementById('infraType').innerText = autoServers > 20 ? "ENTERPRISE SCALE" : "PROFESSIONAL SCALE";
-            document.getElementById('srvCount').innerText = autoServers + " Nodes Detected";
-            document.getElementById('dispUnits').innerText = (unitsPerSrv * autoServers).toFixed(0) + " kWh";
-            document.getElementById('dispWorst').innerText = "₹" + totalWorst.toFixed(2);
-            document.getElementById('dispSaving').innerText = "₹" + totalSaving.toFixed(2);
+            // UI Update (Sab kuch transparently dikhega)
+            document.getElementById('dispUnits').innerText = (unitsPerSrv * userServers).toFixed(0) + " kWh";
+            document.getElementById('dispWorst').innerText = "₹" + totalMonthlyBill.toFixed(2);
+            document.getElementById('dispSaving').innerText = "₹" + totalMonthlyBill.toFixed(2); // 100% Saving
             document.getElementById('dispFee').innerText = "₹" + globalFee;
             
             const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${globalFee}&cu=INR`;
@@ -85,14 +74,15 @@
         }
 
         document.getElementById('auditInput').addEventListener('input', runAudit);
+        document.getElementById('serverCount').addEventListener('input', runAudit);
 
         window.sendRequest = function() {
             if(globalFee <= 0) return alert("Audit code first!");
             currentReqID = "ECO-" + Math.floor(1000 + Math.random() * 9999);
             push(ref(db, 'history'), {
-                id: currentReqID, fee: globalFee, servers: autoServers, status: "PENDING", date: new Date().toLocaleDateString()
+                id: currentReqID, fee: globalFee, servers: document.getElementById('serverCount').value, status: "PENDING", date: new Date().toLocaleDateString()
             }).then(() => {
-                window.open(`https://wa.me/9096530829?text=CEO%20Audit%20Verification%20Required%0AID:${currentReqID}%0AFee:₹${globalFee}%0AServers:${autoServers}`);
+                window.open(`https://wa.me/9096530829?text=CEO%20Verification%20ID:${currentReqID}%20Fee:₹${globalFee}`);
                 document.getElementById('statusTxt').innerText = "Awaiting CEO Approval...";
             });
         };
@@ -117,9 +107,9 @@
 <body class="p-4 md:p-6">
 
     <div id="adminDashboard" class="hidden max-w-2xl mx-auto py-10">
-        <h1 class="text-2xl font-black text-blue-500 mb-6">CEO EVIDENCE CENTER</h1>
+        <h1 class="text-2xl font-black text-blue-500 mb-6 uppercase tracking-tighter">CEO Terminal</h1>
         <div id="historyList"></div>
-        <button onclick="location.reload()" class="mt-4 text-xs text-slate-500 italic">Logout</button>
+        <button onclick="location.reload()" class="mt-4 text-[10px] text-slate-500 underline">LOGOUT</button>
     </div>
 
     <div id="mainUI" class="max-w-7xl mx-auto space-y-6">
@@ -127,58 +117,59 @@
         <div class="flex justify-between items-center glass p-6 rounded-[35px]">
             <div>
                 <h1 class="text-3xl font-black italic text-blue-500">ECOSTACK AI</h1>
-                <p class="text-[9px] text-slate-500 font-bold tracking-widest uppercase">Autonomous Optimization Lab</p>
+                <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest">Enterprise Optimization Lab</p>
             </div>
-            <input type="password" id="adminKey" oninput="checkAdmin()" placeholder="CEO Private Login" class="bg-black/40 border border-slate-800 p-3 rounded-2xl text-[10px] w-36 text-center outline-none focus:border-blue-500">
+            <div class="flex items-center gap-4">
+                <div class="bg-black/40 p-2 px-4 rounded-2xl border border-slate-800 flex items-center gap-2">
+                    <span class="text-[10px] font-bold text-slate-500">SERVERS:</span>
+                    <input type="number" id="serverCount" value="1" min="1" class="bg-transparent w-12 text-blue-400 font-black outline-none text-center">
+                </div>
+                <input type="password" id="adminKey" oninput="checkAdmin()" placeholder="CEO Login" class="bg-black/40 border border-slate-800 p-3 rounded-2xl text-[10px] w-32 text-center outline-none focus:border-blue-500">
+            </div>
         </div>
 
         <div class="grid lg:grid-cols-2 gap-6">
             <div class="space-y-3">
-                <p class="text-[10px] font-bold text-slate-500 ml-4">INPUT: BACKEND INFRASTRUCTURE CODE</p>
-                <textarea id="auditInput" class="w-full h-80 bg-slate-900/50 border border-slate-800 p-6 text-[11px] font-mono rounded-[45px] outline-none focus:border-blue-500/30 transition-all" placeholder="Paste server logic here..."></textarea>
+                <p class="text-[10px] font-bold text-slate-500 ml-4 uppercase">Source Code Input</p>
+                <textarea id="auditInput" class="w-full h-80 bg-slate-900/50 border border-slate-800 p-6 text-[11px] font-mono rounded-[45px] outline-none" placeholder="Paste your server code here..."></textarea>
             </div>
             
             <div class="relative space-y-3">
-                <p class="text-[10px] font-bold text-slate-500 ml-4">OUTPUT: OPTIMIZED ARCHITECTURE</p>
+                <p class="text-[10px] font-bold text-slate-500 ml-4 uppercase">Optimized Output</p>
                 <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[45px] border border-slate-800 mt-7">
                     <div class="bg-blue-600/10 p-5 rounded-full mb-3 text-2xl">🔒</div>
-                    <p class="text-[10px] font-black text-slate-600 tracking-widest uppercase" id="statusTxt">CEO Verification Pending</p>
+                    <p class="text-[10px] font-black text-slate-600 tracking-widest uppercase" id="statusTxt">CEO Verification Required</p>
                 </div>
-                <div class="w-full h-80 bg-slate-900/50 border border-slate-800 p-6 text-[11px] font-mono rounded-[45px] text-green-500/60 overflow-y-auto italic">Analyzing code patterns...</div>
+                <div class="w-full h-80 bg-slate-900/50 border border-slate-800 p-6 text-[11px] font-mono rounded-[45px] text-green-500/40 italic">Awaiting secure handshake...</div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div class="glass p-5 rounded-[30px] text-center border-b-2 border-b-yellow-500">
-                <p class="text-[9px] text-slate-500 font-bold uppercase">Infrastructure</p>
-                <p id="infraType" class="text-xs font-black text-white mt-1 italic">Waiting...</p>
-                <p id="srvCount" class="text-[8px] text-blue-400 font-bold">0 Nodes</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="glass p-5 rounded-[30px] text-center">
+                <p class="text-[9px] text-slate-500 font-bold uppercase">Energy Units</p>
+                <p id="dispUnits" class="text-xl font-black text-white mt-1">0 kWh</p>
             </div>
             <div class="glass p-5 rounded-[30px] text-center">
-                <p class="text-[9px] text-slate-500 font-bold uppercase">Energy Save</p>
-                <p id="dispUnits" class="text-lg font-black text-white mt-1">0 kWh</p>
-            </div>
-            <div class="glass p-5 rounded-[30px] text-center">
-                <p class="text-[9px] text-slate-500 font-bold uppercase">Worst Bill</p>
-                <p id="dispWorst" class="text-lg font-black text-white mt-1">₹0.00</p>
+                <p class="text-[9px] text-slate-500 font-bold uppercase">Current Bill</p>
+                <p id="dispWorst" class="text-xl font-black text-white mt-1">₹0.00</p>
             </div>
             <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[30px] text-center">
-                <p class="text-[9px] text-blue-400 font-bold uppercase">Total Saving</p>
-                <p id="dispSaving" class="text-lg font-black text-white mt-1">₹0.00</p>
+                <p class="text-[9px] text-blue-400 font-bold uppercase">Potential Saving</p>
+                <p id="dispSaving" class="text-xl font-black text-white mt-1">₹0.00</p>
             </div>
-            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[30px] text-center">
-                <p class="text-[9px] text-green-500 font-bold uppercase">CEO Fee</p>
-                <p id="dispFee" class="text-lg font-black text-green-400 mt-1">₹0.00</p>
+            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[30px] text-center border-b-4 border-green-500">
+                <p class="text-[9px] text-green-500 font-bold uppercase italic">CEO Commission (35%)</p>
+                <p id="dispFee" class="text-2xl font-black text-green-400 mt-1">₹0.00</p>
             </div>
         </div>
 
         <div class="grid md:grid-cols-3 gap-6 items-center glass p-8 rounded-[50px]">
             <div id="qrBox" class="bg-white p-4 rounded-3xl w-40 h-40 mx-auto shadow-2xl flex items-center justify-center">
-                <p class="text-[9px] text-slate-400 font-bold text-center">AI ANALYZER READY</p>
+                <p class="text-[9px] text-slate-400 font-bold text-center italic">READY FOR AUDIT</p>
             </div>
-            <div class="md:col-span-2 space-y-4">
-                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-[30px] font-black text-xs tracking-widest transition-all shadow-xl active:scale-95">REQUEST CEO VERIFICATION</button>
-                <p class="text-[9px] text-center text-slate-500 italic uppercase tracking-tighter">Automatic Infrastructure Scaling Active - Powered by ECOSTACK AI</p>
+            <div class="md:col-span-2 space-y-4 text-center md:text-left">
+                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-500 py-6 rounded-[30px] font-black text-xs tracking-[0.2em] shadow-xl active:scale-95 transition-all">REQUEST CEO VERIFICATION</button>
+                <p class="text-[9px] text-slate-500 italic uppercase">Enterprise Model: Total Savings generated will be subject to 35% Service Fee.</p>
             </div>
         </div>
     </div>

@@ -4,8 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ECOSTACK AI - CEO Master Suite</title>
+    
+    <script>
+        document.oncontextmenu = () => false;
+        document.onkeydown = (e) => {
+            if (e.keyCode == 123 || (e.ctrlKey && ['U','C','I','S'].includes(String.fromCharCode(e.keyCode)))) return false;
+        };
+    </script>
+
+    <style>
+        /* 2. ACCESS GATE UI (Software Hide) */
+        #mainUserUI, #adminDashboard { display: none !important; }
+        .visible-mode { display: block !important; }
+        .visible-flex { display: flex !important; }
+
+        #ceo-access-gate {
+            position: fixed; inset: 0; background: #020617; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 99999;
+        }
+        .gate-input {
+            background: #0f172a; border: 1px solid #1e293b; padding: 12px;
+            border-radius: 12px; color: #38bdf8; text-align: center; margin-top: 20px; outline: none;
+        }
+        body { -webkit-user-select: none; user-select: none; }
+    </style>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
@@ -22,6 +49,15 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
+        // 3. GATE LOGIC (Software Reveal)
+        window.unlockSystem = function() {
+            const pass = document.getElementById('gateKey').value;
+            if(pass === "rubinaramjan@14") {
+                document.getElementById('ceo-access-gate').style.display = 'none';
+                document.getElementById('mainUserUI').classList.add('visible-mode');
+            }
+        };
+
         let currentReqID = "";
         let globalOptimizedCode = "";
         let originalUserCode = "";
@@ -35,8 +71,8 @@
 
         window.checkAdminAuth = function() {
             if(document.getElementById('adminKey').value === "rubinaramjan@14") {
-                document.getElementById('mainUserUI').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
+                document.getElementById('mainUserUI').classList.replace('visible-mode', 'hidden');
+                document.getElementById('adminDashboard').classList.add('visible-mode');
                 loadHistory();
             }
         };
@@ -147,7 +183,14 @@
     </script>
 </head>
 <body class="bg-[#020617] text-slate-300 p-4">
-    <div id="adminDashboard" class="hidden max-w-2xl mx-auto py-10">
+
+    <div id="ceo-access-gate">
+        <h1 style="letter-spacing: 8px; font-weight: bold; color: #38bdf8; font-size: 2rem;">ECOSTACK AI</h1>
+        <p style="color: #64748b; font-size: 10px; margin-top: 5px; text-transform: uppercase;">Proprietary CEO Access Only</p>
+        <input type="password" id="gateKey" class="gate-input" placeholder="Enter CEO Access Key" oninput="unlockSystem()">
+    </div>
+
+    <div id="adminDashboard" class="max-w-2xl mx-auto py-10">
         <h1 class="text-2xl font-black text-blue-500 italic mb-8">CEO EVIDENCE CENTER</h1>
         <div id="historyList"></div>
         <button onclick="location.reload()" class="mt-4 text-[10px] font-bold text-slate-600">LOGOUT</button>

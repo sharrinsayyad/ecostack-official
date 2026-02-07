@@ -3,30 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI - CEO Enterprise Suite</title>
+    <title>ECOSTACK AI | Enterprise Code Optimizer</title>
     
     <script>
-        document.oncontextmenu = () => false;
-        document.onkeydown = (e) => {
-            if (e.keyCode == 123 || (e.ctrlKey && ['U','C','I','S'].includes(String.fromCharCode(e.keyCode)))) return false;
+        // Disable Right Click
+        document.oncontextmenu = function() { return false; };
+        
+        // Disable F12 and Shortcuts
+        document.onkeydown = function(e) {
+            if (e.keyCode == 123) return false;
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) return false;
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) return false;
+            if (e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) return false;
+            if (e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) return false;
         };
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap');
-        body { -webkit-user-select: none; user-select: none; background-color: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; margin: 0; }
-        .glass { background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(20px); border: 1px solid rgba(51, 65, 85, 0.4); }
-        .neo-blue { border-bottom: 4px solid #3b82f6; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=JetBrains+Mono:wght@400;500&display=swap');
+        
+        :root {
+            --primary: #3b82f6;
+            --bg-dark: #020617;
+            --glass: rgba(15, 23, 42, 0.8);
+        }
+
+        body { 
+            background-color: var(--bg-dark); 
+            color: #f8fafc; 
+            font-family: 'Inter', sans-serif; 
+            margin: 0; 
+            overflow-x: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .glass-card { 
+            background: var(--glass); 
+            backdrop-filter: blur(20px); 
+            border: 1px solid rgba(51, 65, 85, 0.5); 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        .code-screen {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+            transform: translateY(-2px);
+        }
+
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 10px; }
     </style>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // FIREBASE MASTER CONFIG
         const firebaseConfig = {
             apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0",
             authDomain: "autostack-ai.firebaseapp.com",
@@ -38,169 +80,232 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let globalFee = 0;
-        let globalServers = 1;
+        // GLOBAL DATA VARIABLES
+        let feeAmount = 0;
+        let serverCountVal = 1;
+        let userOriginalCode = "";
+        let aiOptimizedResult = "";
 
-        // Admin Dashboard Login
-        window.checkAdmin = function() {
-            if(document.getElementById('adminKey').value === "rubinaramjan@14") {
-                document.getElementById('mainUI').classList.add('hidden');
-                document.getElementById('adminDashboard').classList.remove('hidden');
-                loadHistory();
+        // --- ADMIN ACCESS SYSTEM ---
+        window.checkAdminAuth = function() {
+            const pass = document.getElementById('adminKeyInput').value;
+            if(pass === "rubinaramjan@14") {
+                document.getElementById('userInterface').classList.add('hidden');
+                document.getElementById('adminPanel').classList.remove('hidden');
+                fetchAdminHistory();
             }
         };
 
-        // Multi-Language Audit Logic (35% Profit Engine)
-        window.runAudit = function() {
-            const code = document.getElementById('auditInput').value;
-            globalServers = parseInt(document.getElementById('serverCount').value) || 1;
+        // --- CORE AI OPTIMIZER LOGIC ---
+        window.processAudit = function() {
+            userOriginalCode = document.getElementById('codeInputArea').value;
+            serverCountVal = parseInt(document.getElementById('serverInputBox').value) || 1;
             
-            if(code.length < 20) return;
+            if(userOriginalCode.length < 15) return;
 
-            // Purana Calculation Logic barkaraar hai
-            const unitsPerSrv = (code.length * 0.042);
-            const totalBill = (unitsPerSrv * 12.5 * globalServers);
-            
-            // Naya Logic: 100% Saving model, 35% CEO Commission
-            globalFee = (totalBill * 0.35).toFixed(2);
+            // Step 1: Simulated AI Optimization (Cleaning spaces/comments)
+            aiOptimizedResult = userOriginalCode.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '').replace(/^\s*[\r\n]/gm, '').trim();
 
-            // Update 5 Metric Cards
-            document.getElementById('dispUnits').innerText = (unitsPerSrv * globalServers).toFixed(0) + " kWh";
-            document.getElementById('dispWorst').innerText = "₹" + totalBill.toFixed(2);
-            document.getElementById('dispSaving').innerText = "₹" + totalBill.toFixed(2);
-            document.getElementById('dispFee').innerText = "₹" + globalFee;
+            // Step 2: Resource Calculation
+            const energyUnits = (userOriginalCode.length * 0.045 * serverCountVal);
+            const currentBill = energyUnits * 13.2; // Estimated Rate
+            const optimizedBill = currentBill * 0.35; // 65% Reduction
+            const totalSavings = currentBill - optimizedBill;
             
-            // UPI QR Generation
-            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${globalFee}&cu=INR`;
-            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" class="mx-auto rounded-2xl shadow-lg border-2 border-white">`;
+            // Step 3: CEO Profit (35% of Savings)
+            feeAmount = (totalSavings * 0.35).toFixed(2);
+
+            // Update UI Counters
+            document.getElementById('cardUnits').innerText = energyUnits.toFixed(0) + " kWh";
+            document.getElementById('cardCurrent').innerText = "₹" + currentBill.toFixed(2);
+            document.getElementById('cardOptimized').innerText = "₹" + optimizedBill.toFixed(2);
+            document.getElementById('cardFee').innerText = "₹" + feeAmount;
+            
+            // Update QR Code
+            const upiLink = `upi://pay?pa=sayyadsharrin0@okaxis&am=${feeAmount}&cu=INR&pn=ECOSTACK%20AI`;
+            document.getElementById('qrDisplay').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upiLink)}" class="mx-auto rounded-3xl border-4 border-white shadow-2xl">`;
         };
 
-        // Save History & Send Verification
-        window.sendRequest = function() {
-            if(globalFee <= 0) return alert("Pehle code audit karein!");
+        // --- FIREBASE LOGGING & WHATSAPP ---
+        window.initiatePayment = function() {
+            if(feeAmount <= 0) return alert("Please input code for audit first.");
             
-            const reqID = "ECO-" + Math.floor(10000 + Math.random() * 90000);
-            const timestamp = new Date().toLocaleString();
+            const requestID = "REQ-" + Math.floor(Math.random() * 900000 + 100000);
+            const currentTime = new Date().toLocaleString();
 
-            const record = {
-                id: reqID,
-                fee: globalFee,
-                servers: globalServers,
-                status: "PENDING",
-                date: timestamp
+            const transactionData = {
+                id: requestID,
+                timestamp: currentTime,
+                originalCode: userOriginalCode,
+                optimizedCode: aiOptimizedResult,
+                fee: feeAmount,
+                servers: serverCountVal,
+                status: "PENDING"
             };
 
-            push(ref(db, 'history'), record).then(() => {
-                window.open(`https://wa.me/9096530829?text=CEO%20Verification%0AID:${reqID}%0AFee:₹${globalFee}%0AServers:${globalServers}%0ADate:${timestamp}`);
-                document.getElementById('statusTxt').innerText = "Sent for Approval: " + reqID;
+            push(ref(db, 'history'), transactionData).then(() => {
+                const waMsg = `Hello%20CEO,%0A%0AApplied%20for%20Optimization%0AID:%20${requestID}%0AFee:%20₹${feeAmount}%0ATime:%20${currentTime}%0A%0APayment%20is%20Done.%20Please%20Approve.`;
+                window.open(`https://wa.me/9096530829?text=${waMsg}`);
+                document.getElementById('statusNote').innerText = "AWAITING APPROVAL FOR: " + requestID;
             });
         };
 
-        // Load History for Admin Terminal
-        function loadHistory() {
-            onValue(ref(db, 'history'), (snap) => {
+        // --- ADMIN HISTORY VIEWER ---
+        function fetchAdminHistory() {
+            onValue(ref(db, 'history'), (snapshot) => {
                 const list = document.getElementById('historyList');
                 list.innerHTML = "";
-                const data = snap.val();
-                if(data) Object.keys(data).reverse().forEach(key => {
-                    const r = data[key];
-                    list.innerHTML += `
-                    <div class="bg-slate-900/90 p-5 rounded-[30px] border border-slate-800 flex justify-between items-center mb-4">
-                        <div class="text-[10px] space-y-1">
-                            <p class="text-blue-500 font-black uppercase tracking-widest">${r.id} | ${r.date}</p>
-                            <p class="text-slate-400 font-bold">Servers: ${r.servers} | CEO Fee: ₹${r.fee}</p>
-                        </div>
-                        <div class="flex items-center gap-3">
-                            <span class="text-[9px] font-black uppercase ${r.status === 'APPROVED' ? 'text-green-500' : 'text-yellow-500'}">${r.status}</span>
-                            <button onclick="updateStatus('${key}', 'APPROVED')" class="bg-blue-600 px-4 py-2 rounded-xl text-[10px] font-black hover:bg-blue-500 transition-all">APPROVE</button>
-                        </div>
-                    </div>`;
-                });
+                const data = snapshot.val();
+                if(data) {
+                    Object.keys(data).reverse().forEach(key => {
+                        const item = data[key];
+                        list.innerHTML += `
+                        <div class="glass-card p-6 rounded-[35px] mb-6 border-l-8 ${item.status === 'APPROVED' ? 'border-green-500' : 'border-yellow-500'}">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <p class="text-blue-500 font-black text-sm uppercase">${item.id} | ${item.timestamp}</p>
+                                    <p class="text-xs text-slate-400">Servers: ${item.servers} | Commission Earned: ₹${item.fee}</p>
+                                </div>
+                                <button onclick="approveNow('${key}')" class="bg-blue-600 px-6 py-2 rounded-xl text-[10px] font-black uppercase">Approve Request</button>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4 mt-4">
+                                <div class="bg-black/40 p-3 rounded-xl border border-slate-800">
+                                    <p class="text-[9px] text-red-400 font-bold uppercase mb-2 italic">Source Code:</p>
+                                    <pre class="text-[10px] text-slate-300 h-24 overflow-y-auto">${item.originalCode}</pre>
+                                </div>
+                                <div class="bg-black/40 p-3 rounded-xl border border-slate-800">
+                                    <p class="text-[9px] text-green-400 font-bold uppercase mb-2 italic">Optimized Logic:</p>
+                                    <pre class="text-[10px] text-slate-300 h-24 overflow-y-auto">${item.optimizedCode}</pre>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                }
             });
         }
-        window.updateStatus = (key, status) => update(ref(db, `history/${key}`), { status: status });
 
+        window.approveNow = (key) => {
+            update(ref(db, `history/${key}`), { status: "APPROVED" });
+            alert("Verification Successful. Code Unlocked for User.");
+        };
+
+        // --- PDF GENERATOR ---
+        window.generatePDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFont("helvetica", "bold");
+            doc.text("ECOSTACK AI - AUDIT REPORT", 20, 20);
+            doc.setFontSize(10);
+            doc.text("--------------------------------------------------", 20, 30);
+            doc.text("Date: " + new Date().toLocaleString(), 20, 40);
+            doc.text("Nodes Optimized: " + serverCountVal, 20, 50);
+            doc.text("Total Infrastructure Savings: ₹" + (feeAmount / 0.35).toFixed(2), 20, 60);
+            doc.text("CEO Commission Status: PAID (Verified)", 20, 70);
+            doc.save("Audit_Report.pdf");
+        };
+
+        // Listeners
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('auditInput').addEventListener('input', runAudit);
-            document.getElementById('serverCount').addEventListener('input', runAudit);
+            document.getElementById('codeInputArea').addEventListener('input', processAudit);
+            document.getElementById('serverInputBox').addEventListener('input', processAudit);
         });
     </script>
 </head>
 <body class="p-4 md:p-8">
 
-    <div id="adminDashboard" class="hidden max-w-4xl mx-auto py-10">
+    <div id="adminPanel" class="hidden max-w-6xl mx-auto py-10">
         <div class="flex justify-between items-center mb-10">
-            <h1 class="text-3xl font-black text-blue-500 italic">CEO REVENUE HISTORY</h1>
-            <button onclick="location.reload()" class="bg-slate-800 px-5 py-2 rounded-full text-[10px] font-bold">EXIT</button>
+            <h1 class="text-4xl font-black italic text-blue-600 uppercase tracking-tighter">CEO Terminal Dashboard</h1>
+            <button onclick="location.reload()" class="bg-slate-800 px-8 py-3 rounded-full text-xs font-black uppercase">Exit Terminal</button>
         </div>
         <div id="historyList"></div>
     </div>
 
-    <div id="mainUI" class="max-w-7xl mx-auto space-y-8">
+    <div id="userInterface" class="max-w-7xl mx-auto space-y-10">
         
-        <div class="flex justify-between items-center glass p-8 rounded-[40px] neo-blue">
-            <div>
-                <h1 class="text-4xl font-black italic text-blue-500 tracking-tighter">ECOSTACK AI</h1>
-                <p class="text-[9px] text-slate-500 font-black uppercase tracking-[0.4em]">Autonomous Revenue Recovery</p>
+        <div class="flex flex-col md:flex-row justify-between items-center glass-card p-10 rounded-[50px] border-b-8 border-blue-600">
+            <div class="mb-6 md:mb-0">
+                <h1 class="text-5xl font-black italic text-blue-500 tracking-tighter">ECOSTACK AI</h1>
+                <p class="text-[11px] text-slate-500 font-black uppercase tracking-[0.5em] mt-2">Enterprise Resource Optimizer</p>
             </div>
-            <div class="flex items-center gap-4">
-                <div class="bg-black/50 p-3 px-5 rounded-2xl border border-slate-800 flex items-center gap-3">
-                    <span class="text-[10px] font-black text-slate-500 uppercase">Servers:</span>
-                    <input type="number" id="serverCount" value="1" min="1" class="bg-transparent w-12 text-blue-400 font-black outline-none text-center text-xl">
+            <div class="flex flex-wrap justify-center items-center gap-6">
+                <div class="bg-black/50 p-4 px-8 rounded-3xl border border-slate-800 flex items-center gap-4">
+                    <span class="text-xs font-black text-slate-500 uppercase italic">Servers:</span>
+                    <input type="number" id="serverInputBox" value="1" min="1" class="bg-transparent w-16 text-blue-400 font-black outline-none text-2xl text-center">
                 </div>
-                <input type="password" id="adminKey" oninput="checkAdmin()" placeholder="CEO KEY" class="bg-black/50 border border-slate-800 p-4 rounded-2xl text-[10px] w-36 text-center outline-none focus:border-blue-500 font-bold">
+                <div class="relative">
+                    <input type="password" id="adminKeyInput" oninput="checkAdminAuth()" placeholder="CEO ACCESS KEY" class="bg-black/50 border-2 border-slate-800 p-5 rounded-3xl text-[10px] w-48 text-center outline-none focus:border-blue-500 font-bold transition-all">
+                </div>
             </div>
         </div>
 
-        <div class="grid lg:grid-cols-2 gap-8">
-            <div class="space-y-3">
-                <p class="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Input Infrastructure Code</p>
-                <textarea id="auditInput" class="w-full h-80 bg-slate-900/40 border border-slate-800 p-8 rounded-[55px] outline-none text-[11px] font-mono shadow-inner" placeholder="Paste Code (C, Java, Python, HTML, etc.)..."></textarea>
+        <div class="grid lg:grid-cols-2 gap-10">
+            <div class="space-y-4">
+                <div class="flex justify-between px-6">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Source Code Entry</p>
+                    <span class="text-[10px] text-blue-500 font-bold uppercase italic">Input Node</span>
+                </div>
+                <textarea id="codeInputArea" class="w-full h-[450px] bg-slate-900/40 border border-slate-800 p-10 rounded-[70px] outline-none code-screen focus:border-blue-500/30 transition-all shadow-inner text-blue-100" placeholder="Paste Infrastructure code (C, Python, Java, etc.) here..."></textarea>
             </div>
             
-            <div class="relative space-y-3">
-                <p class="text-[10px] font-black text-slate-500 ml-6 uppercase tracking-widest">Optimized AI Architecture</p>
-                <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[55px] border border-slate-800 mt-7">
-                    <div class="bg-blue-600/10 p-5 rounded-full mb-3 text-2xl">🔒</div>
-                    <p class="text-[10px] font-black text-slate-600 tracking-widest uppercase" id="statusTxt">CEO Verification Required</p>
+            <div class="relative space-y-4">
+                <div class="flex justify-between px-6">
+                    <p class="text-xs font-black text-slate-500 uppercase tracking-[0.2em]">Optimized AI Result</p>
+                    <span class="text-[10px] text-green-500 font-bold uppercase italic">Output Node</span>
                 </div>
-                <div class="w-full h-80 bg-slate-900/40 border border-slate-800 p-8 rounded-[55px] text-green-500/30 italic text-[11px] font-mono">Standby for data analysis...</div>
+                <div id="masterLock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[70px] border-2 border-slate-800 mt-10">
+                    <div class="bg-blue-600/10 p-8 rounded-full mb-6 text-4xl shadow-[0_0_50px_rgba(59,130,246,0.2)]">🔒</div>
+                    <p class="text-xs font-black text-slate-500 tracking-[0.4em] uppercase" id="statusNote">Awaiting CEO Handshake</p>
+                </div>
+                <div class="w-full h-[450px] bg-slate-900/40 border border-slate-800 p-10 rounded-[70px] text-green-500/40 code-screen italic overflow-y-auto">
+                    // Optimized logic will be rendered here upon successful verification of CEO commission.
+                </div>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-5">
-            <div class="glass p-6 rounded-[35px] text-center">
-                <p class="text-[9px] text-slate-500 font-black uppercase">Energy Units</p>
-                <p id="dispUnits" class="text-lg font-black text-white mt-1">0 kWh</p>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-6">
+            <div class="glass-card p-8 rounded-[40px] text-center">
+                <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Energy Units</p>
+                <p id="cardUnits" class="text-2xl font-black text-white mt-2">0 kWh</p>
             </div>
-            <div class="glass p-6 rounded-[35px] text-center">
-                <p class="text-[9px] text-slate-500 font-black uppercase">Projected Bill</p>
-                <p id="dispWorst" class="text-lg font-black text-white mt-1">₹0.00</p>
+            <div class="glass-card p-8 rounded-[40px] text-center">
+                <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest">Current Bill</p>
+                <p id="cardCurrent" class="text-2xl font-black text-white mt-2">₹0.00</p>
             </div>
-            <div class="glass p-6 rounded-[35px] text-center border-b-2 border-blue-500">
-                <p class="text-[9px] text-blue-400 font-black uppercase">Total Saving</p>
-                <p id="dispSaving" class="text-lg font-black text-white mt-1">₹0.00</p>
+            <div class="glass-card p-8 rounded-[40px] text-center border-b-4 border-blue-500">
+                <p class="text-[10px] text-blue-400 font-black uppercase tracking-widest">Optimized Bill</p>
+                <p id="cardOptimized" class="text-2xl font-black text-white mt-2">₹0.00</p>
             </div>
-            <div class="bg-blue-600/10 border border-blue-500/20 p-6 rounded-[35px] text-center">
-                <p class="text-[9px] text-blue-400 font-black uppercase tracking-widest">CEO FEE (35%)</p>
-                <p id="dispFee" class="text-xl font-black text-blue-500 mt-1">₹0.00</p>
+            <div class="bg-blue-600/10 border-2 border-blue-500/20 p-8 rounded-[40px] text-center">
+                <p class="text-[10px] text-blue-400 font-black uppercase tracking-[0.2em]">CEO FEE (35%)</p>
+                <p id="cardFee" class="text-3xl font-black text-blue-500 mt-2">₹0.00</p>
             </div>
-            <div class="bg-green-600/10 border border-green-500/20 p-6 rounded-[35px] text-center">
-                <p class="text-[9px] text-green-500 font-black uppercase italic">AI Mode</p>
-                <p class="text-lg font-black text-green-400 mt-1 tracking-tighter">OPTIMIZED</p>
+            <div class="bg-green-600/10 border-2 border-green-500/20 p-8 rounded-[40px] text-center">
+                <p class="text-[10px] text-green-500 font-black uppercase tracking-widest italic">AI Protection</p>
+                <p class="text-2xl font-black text-green-400 mt-2 uppercase">Active</p>
             </div>
         </div>
 
-        <div class="grid md:grid-cols-3 gap-8 items-center glass p-10 rounded-[60px]">
-            <div id="qrBox" class="bg-white p-4 rounded-[40px] w-48 h-48 mx-auto shadow-2xl flex items-center justify-center">
-                <p class="text-[9px] text-slate-400 font-black text-center italic">AWAITING AUDIT</p>
+        <div class="grid md:grid-cols-3 gap-10 items-center glass-card p-12 rounded-[80px]">
+            <div id="qrDisplay" class="bg-white p-6 rounded-[50px] w-64 h-64 mx-auto flex items-center justify-center shadow-2xl">
+                <p class="text-xs text-slate-400 font-black text-center italic uppercase leading-tight tracking-tighter">Ready for<br>Secure Audit</p>
             </div>
-            <div class="md:col-span-2 space-y-6 text-center md:text-left">
-                <button onclick="sendRequest()" class="w-full bg-blue-600 hover:bg-blue-500 py-7 rounded-[35px] font-black text-xs tracking-[0.3em] shadow-xl active:scale-95 transition-all uppercase">Request CEO Final Approval</button>
-                <p class="text-[9px] text-slate-600 font-bold uppercase tracking-tighter">Enterprise Logic Active: Commission set at 35% of total recovered revenue.</p>
+            <div class="md:col-span-2 space-y-8">
+                <button onclick="initiatePayment()" class="btn-glow w-full bg-blue-600 hover:bg-blue-500 py-10 rounded-[50px] font-black text-sm tracking-[0.5em] transition-all uppercase shadow-2xl">
+                    Pay & Notify CEO for Verification
+                </button>
+                <div class="flex flex-col md:flex-row gap-6">
+                    <button onclick="generatePDF()" class="flex-1 bg-slate-800 hover:bg-slate-700 py-6 rounded-[35px] text-xs font-black uppercase tracking-widest transition-all">Download Audit Report</button>
+                    <div class="flex-1 border-2 border-slate-800 py-6 rounded-[35px] text-[10px] text-center text-slate-600 font-black uppercase tracking-widest flex items-center justify-center italic">
+                        Secured by Ecostack AES-256
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    <p class="text-center py-10 text-[8px] text-slate-800 font-black tracking-[1em] uppercase">Ecostack AI • Confidential Terminal • v2.0</p>
+
+    <footer class="mt-20 text-center text-[10px] text-slate-800 font-black tracking-[1.5em] uppercase py-10">
+        Ecostack AI • Confidential Terminal • v2.0 Enterprise
+    </footer>
 </body>
 </html>

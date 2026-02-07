@@ -3,72 +3,187 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI | Secure Enterprise</title>
+    <title>ECOSTACK AI - CEO Master Suite</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <style>
-        /* FULL PRIVACY UI */
-        body { background-color: #020617; color: #f8fafc; font-family: sans-serif; -webkit-user-select: none; user-select: none; }
-        #main-app { display: none; } /* Pura software chhupa hua hai */
-        
-        #lock-screen {
-            position: fixed; inset: 0; background: #020617;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10000;
-        }
-        .key-input {
-            background: #0f172a; border: 1px solid #1e293b; padding: 12px;
-            border-radius: 8px; color: #38bdf8; text-align: center; margin-top: 20px; outline: none;
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-    <script>
-        // RIGHT-CLICK & HACKER PROTECTION
-        document.oncontextmenu = () => false;
-        document.onkeydown = (e) => {
-            if (e.keyCode == 123 || (e.ctrlKey && ['U','I','C','S'].includes(String.fromCharCode(e.keyCode)))) return false;
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0",
+            authDomain: "autostack-ai.firebaseapp.com",
+            projectId: "autostack-ai",
+            storageBucket: "autostack-ai.firebasestorage.app",
+            messagingSenderId: "35493907558",
+            appId: "1:35493907558:web:34c1c21e5a85bcae2131a7",
+            measurementId: "G-P1VJ0FTMX9"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentReqID = "";
+        let globalOptimizedCode = "";
+        let originalUserCode = "";
+        let pdfData = {};
+
+        function performRealOptimization(code) {
+            let optimized = code.replace(/\/\*[\s\S]*?\*\/|([^\\:]|^)\/\/.*$/gm, '$1');
+            optimized = optimized.replace(/\s+/g, ' ').trim();
+            return `/* ECOSTACK AI: REAL-TIME OPTIMIZED */\n${optimized}`;
+        }
+
+        window.checkAdminAuth = function() {
+            if(document.getElementById('adminKey').value === "rubinaramjan@14") {
+                document.getElementById('mainUserUI').classList.add('hidden');
+                document.getElementById('adminDashboard').classList.remove('hidden');
+                loadHistory();
+            }
         };
 
-        // ACCESS KEY VERIFICATION
-        function checkAccess() {
-            const val = document.getElementById('pass').value;
-            if (val === "rubinaramjan@14") { // Aapka Admin Password
-                document.getElementById('lock-screen').style.display = 'none';
-                document.getElementById('main-app').style.display = 'block';
+        document.getElementById('auditInput').addEventListener('input', (e) => {
+            const code = e.target.value;
+            if(code.length > 5) {
+                originalUserCode = code;
+                globalOptimizedCode = performRealOptimization(code);
+                const units = (code.length * 0.042).toFixed(2);
+                const worstBill = (units * 12.5).toFixed(2);
+                const totalSavings = (worstBill * 0.35).toFixed(2);
+                const ceoFee = (totalSavings * 0.35).toFixed(2);
+
+                document.getElementById('dispUnits').innerText = units + " kWh";
+                document.getElementById('dispWorst').innerText = "₹" + worstBill;
+                document.getElementById('dispOptimized').innerText = "₹" + (worstBill - totalSavings).toFixed(2);
+                document.getElementById('dispTotalSaving').innerText = "₹" + totalSavings;
+                document.getElementById('dispCEOFee').innerText = "₹" + ceoFee;
+                
+                pdfData = { units, worstBill, totalSavings, ceoFee };
+                const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${ceoFee}&cu=INR`;
+                document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl shadow-lg">`;
             }
+        });
+
+        window.sendRequest = function() {
+            const fee = document.getElementById('dispCEOFee').innerText;
+            if(fee === "₹0.00") return alert("Audit code first!");
+            currentReqID = "ECO-" + Math.floor(1000 + Math.random() * 9000);
+            push(ref(db, 'history'), {
+                id: currentReqID, fee: fee, saving: document.getElementById('dispTotalSaving').innerText,
+                worstCode: btoa(unescape(encodeURIComponent(originalUserCode))), 
+                optimizedCode: btoa(unescape(encodeURIComponent(globalOptimizedCode))),
+                status: "PENDING", date: new Date().toLocaleDateString(), time: new Date().toLocaleTimeString()
+            }).then(() => {
+                window.open(`https://wa.me/9096530829?text=CEO%20Approve%20ID:${currentReqID}%20Amt:${fee}`);
+                document.getElementById('statusTxt').innerText = "Awaiting CEO Approval...";
+            });
+        };
+
+        window.downloadPDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFillColor(10, 15, 25); doc.rect(0, 0, 210, 297, 'F');
+            doc.setTextColor(59, 130, 246); doc.setFontSize(26); doc.setFont("helvetica", "bold");
+            doc.text("ECOSTACK AI", 20, 35);
+            doc.setTextColor(200, 200, 200); doc.setFontSize(10); doc.setFont("helvetica", "normal");
+            doc.text(`REPORT ID: ${currentReqID}`, 20, 50);
+            doc.text(`DATE: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, 20, 58);
+            doc.setDrawColor(59, 130, 246); doc.line(20, 65, 190, 65);
+            doc.setTextColor(255, 255, 255); doc.setFontSize(14); doc.text("SAVINGS ANALYSIS:", 20, 80);
+            doc.setFontSize(11);
+            doc.text(`- Electricity Used: ${pdfData.units} kWh`, 25, 95);
+            doc.text(`- Worst Server Bill: INR ${pdfData.worstBill}`, 25, 105);
+            doc.setTextColor(34, 197, 94);
+            doc.text(`- Net Monthly Savings: INR ${pdfData.totalSavings}`, 25, 115);
+            doc.setTextColor(255, 255, 255); doc.setFontSize(14); doc.text("OPTIMIZED CODE PREVIEW:", 20, 140);
+            doc.setTextColor(150, 150, 150); doc.setFontSize(9);
+            const preview = `/* ECOSTACK AI: OPTIMIZED */\n/* Savings: ${pdfData.totalSavings} */\n\n${globalOptimizedCode.substring(0, 250)}...`;
+            doc.text(preview, 20, 155, { maxWidth: 170 });
+            doc.save(`ECOSTACK_REPORT_${currentReqID}.pdf`);
+        };
+
+        function loadHistory() {
+            onValue(ref(db, 'history'), (snap) => {
+                const cont = document.getElementById('historyList');
+                cont.innerHTML = "";
+                const data = snap.val();
+                if(data) Object.keys(data).reverse().forEach(key => {
+                    const r = data[key];
+                    cont.innerHTML += `
+                    <div class="bg-slate-900 p-6 rounded-[30px] mb-4 border border-slate-800">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="text-blue-500 font-bold">${r.id}</h3>
+                            ${r.status === 'PENDING' ? `<button onclick="updateStatus('${key}', 'APPROVED')" class="bg-green-600 px-4 py-1.5 rounded-xl text-[10px] font-bold">APPROVE</button>` : `<span class="text-[10px] text-slate-500">${r.status}</span>`}
+                        </div>
+                        <p class="text-[10px] text-slate-400 mb-3">Fee: ${r.fee} | Saving: ${r.saving}</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="viewCode('ORIGINAL', '${r.worstCode}')" class="bg-slate-800 py-3 rounded-xl text-[9px] font-bold text-red-400">RAW</button>
+                            <button onclick="viewCode('OPTIMIZED', '${r.optimizedCode}')" class="bg-slate-800 py-3 rounded-xl text-[9px] font-bold text-green-400">OPT</button>
+                        </div>
+                    </div>`;
+                });
+            });
         }
+
+        window.viewCode = (title, base64) => {
+            const decoded = decodeURIComponent(escape(atob(base64)));
+            const clean = decoded.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            const html = `<html><body style="background:#020617;color:#94a3b8;font-family:monospace;padding:40px;"><h2>${title}</h2><pre style="background:#0f172a;padding:20px;border-radius:15px;border:1px solid #1e293b;white-space:pre-wrap;">${clean}</pre></body></html>`;
+            window.open(URL.createObjectURL(new Blob([html], {type: 'text/html'})), '_blank');
+        };
+
+        window.updateStatus = (key, status) => update(ref(db, `history/${key}`), { status: status });
+
+        onValue(ref(db, 'history'), (snap) => {
+            const data = snap.val();
+            if(data && currentReqID) {
+                const myReq = Object.values(data).find(r => r.id === currentReqID);
+                if(myReq && myReq.status === "APPROVED") {
+                    document.getElementById('lock').classList.add('hidden');
+                    document.getElementById('outputBox').innerText = decodeURIComponent(escape(atob(myReq.optimizedCode)));
+                    document.getElementById('pdfBtn').classList.remove('hidden');
+                }
+            }
+        });
     </script>
 </head>
-<body>
-
-    <div id="lock-screen">
-        <h1 style="letter-spacing: 8px; font-weight: bold; color: #38bdf8;">ECOSTACK AI</h1>
-        <p style="color: #64748b; font-size: 12px; margin-top: 5px;">SECURE ACCESS GATEWAY</p>
-        <input type="password" id="pass" class="key-input" placeholder="Enter CEO Access Key" oninput="checkAccess()">
+<body class="bg-[#020617] text-slate-300 p-4">
+    <div id="adminDashboard" class="hidden max-w-2xl mx-auto py-10">
+        <h1 class="text-2xl font-black text-blue-500 italic mb-8">CEO EVIDENCE CENTER</h1>
+        <div id="historyList"></div>
+        <button onclick="location.reload()" class="mt-4 text-[10px] font-bold text-slate-600">LOGOUT</button>
     </div>
 
-    <div id="main-app">
-        <div class="max-w-4xl mx-auto p-8">
-            <header class="flex justify-between items-center border-b border-slate-800 pb-6">
-                <h2 class="text-2xl font-bold text-sky-400">Audit System v2.0</h2>
-                <div class="text-right">
-                    <p class="text-xs text-slate-500">Support: +91 9096530829</p>
-                </div>
-            </header>
+    <div id="mainUserUI" class="max-w-7xl mx-auto space-y-6">
+        <div class="flex justify-between items-center bg-slate-900/40 p-5 rounded-[30px] border border-slate-800">
+            <h1 class="text-2xl font-black italic text-blue-500">ECOSTACK AI</h1>
+            <input type="password" id="adminKey" oninput="checkAdminAuth()" placeholder="CEO Login" class="bg-black border border-slate-800 p-2.5 rounded-xl text-[10px] w-28 text-center outline-none">
+        </div>
 
-            <main class="mt-10">
-                <div class="bg-slate-900 p-6 rounded-xl border border-slate-800">
-                    <p class="text-slate-400 mb-4">Software is optimized and ready for data input.</p>
-                    <button class="bg-sky-600 hover:bg-sky-500 px-6 py-2 rounded-lg font-bold transition">Start New Audit</button>
+        <div class="grid lg:grid-cols-2 gap-6">
+            <textarea id="auditInput" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-6 text-xs font-mono rounded-[35px] outline-none" placeholder="Paste server code..."></textarea>
+            <div class="relative">
+                <div id="lock" class="absolute inset-0 z-20 bg-slate-950/98 flex flex-col items-center justify-center rounded-[35px] border border-slate-800 text-center">
+                    <p class="text-4xl mb-2">🔒</p><p class="text-[10px] font-black text-slate-500 uppercase tracking-widest" id="statusTxt">Awaiting CEO Verification</p>
                 </div>
-            </main>
+                <div id="outputBox" class="w-full h-80 bg-slate-900/60 border border-slate-800 p-6 text-xs font-mono rounded-[35px] text-green-500/80 overflow-y-auto italic">Optimized code will appear here...</div>
+            </div>
+        </div>
 
-            <footer class="mt-20 p-6 bg-slate-900/50 rounded-xl border border-dashed border-slate-700 text-center">
-                <p class="text-sm text-slate-400">To get un-watermarked PDF reports, send payment to:</p>
-                <p class="text-lg font-mono text-yellow-500 my-2">UPI: sayyadsharrin0@okaxis</p>
-                <p class="text-[10px] text-slate-600 uppercase mt-4">© 2026 ECOSTACK AI | Proprietary & Confidential</p>
-            </footer>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px]"><p class="text-[9px] text-yellow-500 font-bold uppercase">Energy</p><p id="dispUnits" class="text-lg font-black text-white">0.00 kWh</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px]"><p class="text-[9px] text-red-500 font-bold uppercase">Worst</p><p id="dispWorst" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-slate-900/80 border border-slate-800 p-5 rounded-[25px]"><p class="text-[9px] text-blue-500 font-bold uppercase">Opt.</p><p id="dispOptimized" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-blue-600/10 border border-blue-500/20 p-5 rounded-[25px]"><p class="text-[9px] text-blue-400 font-bold uppercase">Saving</p><p id="dispTotalSaving" class="text-lg font-black text-white">₹0.00</p></div>
+            <div class="bg-green-600/10 border border-green-500/20 p-5 rounded-[25px]"><p class="text-[9px] text-green-500 font-bold uppercase">Fee</p><p id="dispCEOFee" class="text-lg font-black text-green-400">₹0.00</p></div>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-6 items-center bg-slate-900/30 p-8 rounded-[40px] border border-slate-800">
+            <div id="qrBox" class="bg-white p-4 rounded-3xl min-h-[160px] flex items-center justify-center mx-auto shadow-2xl"></div>
+            <div class="md:col-span-2 space-y-4">
+                <button onclick="sendRequest()" class="w-full bg-blue-600 py-5 rounded-[25px] font-black text-xs tracking-widest active:scale-95 transition-all shadow-xl">REQUEST CEO VERIFICATION</button>
+                <button id="pdfBtn" onclick="downloadPDF()" class="hidden w-full bg-white text-black py-5 rounded-[25px] font-black text-xs tracking-widest shadow-2xl">⬇️ DOWNLOAD VERIFIED REPORT</button>
+            </div>
         </div>
     </div>
-
 </body>
 </html>

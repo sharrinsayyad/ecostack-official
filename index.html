@@ -58,8 +58,8 @@
                               audit.original.replace(/\s\s+/g, ' ').trim();
 
             const energyBase = (audit.original.length * 0.05 * audit.srv);
-            audit.units = energyBase + (energyBase * 0.35); // With Cooling
-            audit.bill = (audit.units * 14.20) + (audit.srv * 520); // Power + Maintenance
+            audit.units = energyBase + (energyBase * 0.35); 
+            audit.bill = (audit.units * 14.20) + (audit.srv * 520); 
             audit.savings = audit.bill * 0.74;
             audit.fee = (audit.savings * 0.35).toFixed(2);
 
@@ -68,8 +68,9 @@
             document.getElementById('res3').innerText = "₹" + audit.savings.toLocaleString();
             document.getElementById('res4').innerText = "₹" + parseFloat(audit.fee).toLocaleString();
             
-            const upi = `upi://pay?pa=9096530829@okbizaxis&am=${audit.fee}&cu=INR&pn=ECOSTACK%20AI`;
-            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl border border-emerald-500/50">`;
+            // UPDATED UPI ID: sayyadsharrin0@okaxis
+            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${audit.fee}&cu=INR&pn=ECOSTACK%20AI%20FEE`;
+            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upi)}" class="mx-auto rounded-xl border border-emerald-500/50 shadow-2xl">`;
         };
 
         // --- REQUEST & LIVE LISTENER ---
@@ -88,10 +89,9 @@
 
             onValue(ref(db, `history/${currentKey}`), (snap) => {
                 if(snap.val()?.status === "APPROVED") {
-                    // UNLOCK EVERYTHING
                     document.getElementById('lockLayer').classList.add('hidden');
                     document.getElementById('codeOut').value = snap.val().optimized;
-                    document.getElementById('downloadArea').classList.remove('hidden-element'); // BUTTON APPEARS NOW
+                    document.getElementById('downloadArea').classList.remove('hidden-element'); 
                     document.getElementById('statusTag').innerText = "CERTIFIED & RELEASED";
                     document.getElementById('statusTag').className = "text-emerald-500 font-bold italic text-[10px]";
                 }
@@ -211,15 +211,16 @@
         </main>
 
         <section class="grid grid-cols-2 md:grid-cols-5 gap-8">
-            <div class="emerald-glass p-10 rounded-[45px] text-center"><p class="text-[9px] text-emerald-900 font-black mb-2 uppercase">Load</p><p id="res1" class="text-2xl font-black text-white">0 kWh</p></div>
-            <div class="emerald-glass p-10 rounded-[45px] text-center"><p class="text-[9px] text-emerald-900 font-black mb-2 uppercase">Expense</p><p id="res2" class="text-2xl font-black text-white">₹0.00</p></div>
-            <div class="emerald-glass p-10 rounded-[45px] text-center border-t-2 border-emerald-500"><p class="text-[9px] text-emerald-500 font-black mb-2 uppercase">Recovery</p><p id="res3" class="text-2xl font-black text-white">₹0.00</p></div>
-            <div class="bg-emerald-500/5 border-2 border-emerald-500/20 p-10 rounded-[45px] text-center"><p class="text-[9px] text-emerald-400 font-black mb-2 uppercase">CEO FEE (35%)</p><p id="res4" class="text-3xl font-black text-emerald-500">₹0.00</p></div>
-            <div class="emerald-glass p-10 rounded-[45px] text-center"><p class="text-[9px] text-emerald-900 font-black mb-2 uppercase">Status</p><p class="text-xl font-black text-emerald-600 italic uppercase">Secure</p></div>
+            <div class="emerald-glass p-10 rounded-[45px] text-center card-glow"><p class="text-[9px] text-emerald-900 font-black mb-2 uppercase">Load</p><p id="res1" class="text-2xl font-black text-white">0 kWh</p></div>
+            <div class="emerald-glass p-10 rounded-[45px] text-center card-glow"><p class="text-[9px] text-emerald-900 font-black mb-2 uppercase">Expense</p><p id="res2" class="text-2xl font-black text-white">₹0.00</p></div>
+            <div class="emerald-glass p-10 rounded-[45px] text-center border-t-2 border-emerald-500 shadow-emerald-500/10"><p class="text-[9px] text-emerald-500 font-black mb-2 uppercase">Recovery</p><p id="res3" class="text-2xl font-black text-white">₹0.00</p></div>
+            <div class="bg-emerald-500/5 border-2 border-emerald-500/20 p-10 rounded-[45px] text-center shadow-2xl"><p class="text-[9px] text-emerald-400 font-black mb-2 uppercase">CEO FEE (35%)</p><p id="res4" class="text-3xl font-black text-emerald-500">₹0.00</p></div>
+            <div class="emerald-glass p-10 rounded-[45px] text-center card-glow"><p class="text-[9px] text-emerald-900 font-black mb-2 uppercase">Security</p><p class="text-xl font-black text-emerald-600 italic uppercase">Secure</p></div>
         </section>
 
         <footer class="grid md:grid-cols-3 gap-12 items-center emerald-glass p-14 rounded-[80px]">
-            <div id="qrBox" class="bg-white p-6 rounded-[50px] w-64 h-64 mx-auto flex items-center justify-center shadow-2xl text-[10px] text-slate-300 font-black uppercase">READY</div>
+            <div id="qrBox" class="bg-white p-6 rounded-[50px] w-64 h-64 mx-auto flex items-center justify-center shadow-2xl text-[10px] text-slate-300 font-black uppercase text-center">Scan to Pay Fee</div>
+            
             <div class="md:col-span-2 space-y-10">
                 <button onclick="requestApproval()" class="btn-emerald w-full py-14 rounded-[50px] font-black text-sm tracking-[0.5em] uppercase text-white shadow-2xl">
                     Submit Request for CEO Approval

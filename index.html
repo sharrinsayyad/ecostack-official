@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI | Strategic Terminal</title>
+    <title>ECOSTACK AI | Enterprise Terminal</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // CEO PRIVACY SHIELD
+        // CEO PRIVACY: Anti-Inspect
         (function() {
             document.oncontextmenu = () => false;
             window.addEventListener('keydown', (e) => {
-                if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) {
+                if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode))) {
                     e.preventDefault();
-                    document.body.innerHTML = "<div style='background:#000;color:#10b981;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;font-weight:900;'>SYSTEM ENCRYPTED: UNAUTHORIZED ACCESS</div>";
+                    document.body.innerHTML = "<div style='background:#000;color:#10b981;height:100vh;display:flex;align-items:center;justify-content:center;font-weight:900;'>SECURE SESSION TERMINATED</div>";
                 }
             });
         })();
@@ -25,10 +25,9 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap');
         body { background: #000; color: #fff; font-family: 'Inter', sans-serif; }
         .emerald-blur { background: rgba(16, 185, 129, 0.03); backdrop-filter: blur(40px); border: 1px solid rgba(16, 185, 129, 0.1); }
-        .admin-box { background: #050505; border: 1px solid #111; transition: 0.3s; }
-        .code-area { font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5; color: #888; }
-        .stamp-approved { color: #10b981; border: 3px solid #10b981; padding: 4px 12px; border-radius: 8px; font-weight: 900; transform: rotate(-8deg); display: inline-block; animation: pop 0.3s ease-out; }
-        @keyframes pop { from { transform: scale(2); opacity: 0; } to { transform: scale(1) rotate(-8deg); opacity: 1; } }
+        .admin-box { background: #070707; border: 1px solid #111; transition: 0.3s; margin-bottom: 2rem; }
+        .code-area { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #888; white-space: pre-wrap; word-break: break-all; }
+        .stamp-status { font-weight: 900; text-transform: uppercase; border: 2px solid; padding: 4px 10px; border-radius: 6px; transform: rotate(-5deg); display: inline-block; }
         .hidden { display: none !important; }
     </style>
 
@@ -36,6 +35,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+        // Verified Firebase Config
         const firebaseConfig = {
             apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0",
             authDomain: "autostack-ai.firebaseapp.com",
@@ -47,103 +47,104 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let audit = { u: 0, s: 0, f: 0, n: 1, o: "", x: "", loss: 0 };
+        let currentAudit = { u: 0, s: 0, f: 0, n: 1, o: "", x: "", loss: 0 };
 
+        // Main Audit Logic
         window.runAudit = () => {
-            audit.o = document.getElementById('codeIn').value;
-            audit.n = parseInt(document.getElementById('srvInput').value) || 1;
-            if(audit.o.length < 10) return;
+            currentAudit.o = document.getElementById('codeIn').value;
+            currentAudit.n = parseInt(document.getElementById('srvInput').value) || 1;
+            if(currentAudit.o.length < 5) return;
 
-            audit.x = `/* ECOSTACK OPTIMIZED SYSTEM */\n` + audit.o.replace(/\s+/g, ' ').trim();
-            let baseEnergy = (audit.o.length * 0.08 * audit.n);
-            audit.u = baseEnergy + (baseEnergy * 0.40);
-            
-            // LOGIC: Worst Code Expense (The "Loss" calculation)
-            audit.loss = (audit.u * 18.50) + (audit.n * 1200); 
-            audit.s = audit.loss * 0.76;
-            audit.f = (audit.s * 0.35).toFixed(2);
+            currentAudit.x = `/* ECOSTACK OPTIMIZED ENGINE */\n` + currentAudit.o.replace(/\s+/g, ' ').trim();
+            let base = (currentAudit.o.length * 0.08 * currentAudit.n);
+            currentAudit.u = base + (base * 0.40);
+            currentAudit.loss = (currentAudit.u * 18.50) + (currentAudit.n * 1200); 
+            currentAudit.s = currentAudit.loss * 0.76;
+            currentAudit.f = (currentAudit.s * 0.35).toFixed(2);
 
-            document.getElementById('disp1').innerText = audit.u.toFixed(0) + " kWh";
-            document.getElementById('dispLoss').innerText = "₹" + audit.loss.toLocaleString(); // Projected Bill
-            document.getElementById('disp3').innerText = "₹" + audit.s.toLocaleString();
-            document.getElementById('disp4').innerText = "₹" + parseFloat(audit.f).toLocaleString();
-            
-            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${audit.f}&cu=INR&pn=ECOSTACK%20SERVICE`;
-            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(upi)}" class="mx-auto rounded-lg">`;
+            document.getElementById('disp1').innerText = currentAudit.u.toFixed(0) + " kWh";
+            document.getElementById('dispLoss').innerText = "₹" + currentAudit.loss.toLocaleString();
+            document.getElementById('disp3').innerText = "₹" + currentAudit.s.toLocaleString();
+            document.getElementById('disp4').innerText = "₹" + parseFloat(currentAudit.f).toLocaleString();
         };
 
-        window.reqApproval = () => {
-            if(audit.f <= 0) return;
+        // User: Request Approval
+        window.requestCEO = () => {
+            if(currentAudit.f <= 0) return alert("Audit Required");
             const rid = "ESTK-" + Math.random().toString(36).substr(2, 5).toUpperCase();
-            const log = {
+            const payload = {
                 id: rid, d: new Date().toLocaleDateString(), t: new Date().toLocaleTimeString(),
-                orig: audit.o, opti: audit.x, fee: audit.f, loss: audit.loss.toFixed(2), status: "PENDING"
+                orig: currentAudit.o, opti: currentAudit.x, fee: currentAudit.f, loss: currentAudit.loss.toFixed(2), status: "PENDING"
             };
 
-            const refPush = push(ref(db, 'history'), log);
-            onValue(ref(db, `history/${refPush.key}`), (snap) => {
-                if(snap.val()?.status === "APPROVED") {
+            const newRef = push(ref(db, 'history'), payload);
+            onValue(ref(db, `history/${newRef.key}`), (snap) => {
+                const data = snap.val();
+                if(data?.status === "APPROVED") {
                     document.getElementById('lockLayer').classList.add('hidden');
-                    document.getElementById('codeOut').value = snap.val().opti;
+                    document.getElementById('codeOut').value = data.opti;
                     document.getElementById('pdfBtn').classList.remove('hidden');
                     document.getElementById('statusLabel').innerText = "SYSTEM CERTIFIED ✓";
-                    document.getElementById('statusLabel').classList.replace('text-red-900', 'text-emerald-500');
+                    document.getElementById('statusLabel').style.color = "#10b981";
                 }
             });
-            window.open(`https://wa.me/9096530829?text=ECOSTACK%20PAYMENT%20DONE%0AID:${rid}%0AFEE:₹${audit.f}`);
+            window.open(`https://wa.me/9096530829?text=ECOSTACK%20PAYMENT%20DONE%0AID:${rid}%0AFEE:₹${currentAudit.f}`);
         };
 
+        // Admin: Load & Manage Data
         window.loginCEO = () => {
             if(document.getElementById('ceoPin').value === "rubinaramjan@14") {
                 document.getElementById('userUI').classList.add('hidden');
                 document.getElementById('adminUI').classList.remove('hidden');
-                loadHistory();
+                syncAdminFeed();
             }
         };
 
-        function loadHistory() {
+        function syncAdminFeed() {
+            // "onValue" is critical - it listens for every change in Database
             onValue(ref(db, 'history'), (snap) => {
                 const feed = document.getElementById('adminFeed');
                 feed.innerHTML = "";
                 const data = snap.val();
-                if(data) Object.keys(data).reverse().forEach(k => {
-                    const r = data[k];
+                if(!data) { feed.innerHTML = "<p class='text-center text-slate-500'>No records found in database.</p>"; return; }
+                
+                Object.keys(data).reverse().forEach(key => {
+                    const r = data[key];
                     feed.innerHTML += `
-                    <div class="admin-box p-8 rounded-[40px] mb-8 border-l-4 ${r.status==='APPROVED'?'border-emerald-500':'border-red-900'}">
-                        <div class="flex justify-between items-center mb-6">
-                            <div><p class="text-emerald-500 text-[10px] font-black uppercase">${r.id}</p><h2 class="text-xl font-black">${r.d} | ${r.t}</h2></div>
-                            <div>
-                                ${r.status==='PENDING' ? 
-                                `<button onclick="window.setStatus('${k}', 'APPROVED')" class="bg-emerald-600 px-6 py-2 rounded-xl text-xs font-black mr-2">APPROVE</button>
-                                 <button onclick="window.setStatus('${k}', 'REJECTED')" class="bg-red-950 px-6 py-2 rounded-xl text-xs font-black text-red-500">REJECT</button>` : 
-                                `<span class="stamp-approved">${r.status}</span>`}
+                    <div class="admin-box p-8 rounded-[40px] border-l-4 ${r.status==='APPROVED'?'border-emerald-500':'border-red-900'}">
+                        <div class="flex justify-between items-start mb-6">
+                            <div><p class="text-emerald-500 text-[10px] font-black uppercase tracking-widest">${r.id}</p><h2 class="text-xl font-black">${r.d} | ${r.t}</h2></div>
+                            <div id="ctrl-${key}">
+                                ${r.status === 'PENDING' ? 
+                                `<button onclick="window.updateReq('${key}', 'APPROVED')" class="bg-emerald-600 px-6 py-2 rounded-xl text-xs font-black mr-2">APPROVE</button>
+                                 <button onclick="window.updateReq('${key}', 'REJECTED')" class="bg-red-950 px-6 py-2 rounded-xl text-xs font-black text-red-500">REJECT</button>` : 
+                                `<span class="stamp-status ${r.status==='APPROVED'?'text-emerald-500 border-emerald-500':'text-red-600 border-red-600'}">${r.status}</span>`}
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-6 mb-4 text-[10px] font-bold">
-                            <span class="text-red-500 uppercase">Worst Case Expense: ₹${parseFloat(r.loss).toLocaleString()}</span>
-                            <span class="text-emerald-500 text-right uppercase text-xs">CEO Commission: ₹${r.fee}</span>
+                        <div class="grid grid-cols-2 gap-6 mb-6">
+                            <div><p class="text-[9px] text-slate-600 mb-2 uppercase">Input Code</p><pre class="bg-black p-4 rounded-xl h-48 overflow-auto code-area border border-white/5">${r.orig}</pre></div>
+                            <div><p class="text-[9px] text-emerald-900 mb-2 uppercase">Optimized Code</p><pre class="bg-black p-4 rounded-xl h-48 overflow-auto code-area border border-emerald-900/10 text-emerald-400">${r.opti}</pre></div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <pre class="bg-black p-4 rounded-xl h-40 overflow-auto code-area border border-white/5">${r.orig}</pre>
-                            <pre class="bg-black p-4 rounded-xl h-40 overflow-auto code-area border border-emerald-900/10 text-emerald-400">${r.opti}</pre>
+                        <div class="flex justify-between items-center text-xs font-black">
+                            <span class="text-red-500">LOSS: ₹${parseFloat(r.loss).toLocaleString()}</span>
+                            <span class="text-emerald-500">FEE: ₹${r.fee}</span>
+                            <button onclick="window.deleteReq('${key}')" class="text-slate-800 hover:text-red-600 transition-colors uppercase">Purge</button>
                         </div>
-                        <button onclick="window.delEntry('${k}')" class="mt-4 text-[9px] text-red-900 hover:text-red-600 font-bold uppercase">Purge Record</button>
                     </div>`;
                 });
             });
         }
 
-        window.setStatus = (k, s) => update(ref(db, `history/${k}`), { status: s });
-        window.delEntry = (k) => confirm("Delete permanently?") && remove(ref(db, `history/${k}`));
-        window.savePDF = () => {
+        window.updateReq = (k, s) => update(ref(db, `history/${k}`), { status: s });
+        window.deleteReq = (k) => confirm("Purge permanently?") && remove(ref(db, `history/${k}`));
+        
+        window.downloadPDF = () => {
             const doc = new jspdf.jsPDF();
             doc.setFillColor(0,0,0); doc.rect(0,0,210,297,'F');
-            doc.setTextColor(16,185,129); doc.setFontSize(22); doc.text("ECOSTACK AUDIT REPORT", 20, 30);
+            doc.setTextColor(16,185,129); doc.setFontSize(22); doc.text("ECOSTACK AUDIT", 20, 30);
             doc.setTextColor(255,255,255); doc.setFontSize(10);
-            doc.text(`PROJECTED LOSS (UNOPTIMIZED): ₹${audit.loss.toLocaleString()}`, 20, 45);
-            doc.text(`SAVINGS RECOVERED: ₹${audit.s.toLocaleString()}`, 20, 55);
-            doc.text(`CERTIFIED: CEO RUBINA`, 20, 65);
-            doc.text(doc.splitTextToSize(audit.x, 170), 20, 80);
+            doc.text(`SAVINGS: ₹${currentAudit.s.toLocaleString()}`, 20, 50);
+            doc.text(doc.splitTextToSize(currentAudit.x, 170), 20, 70);
             doc.save(`Audit_${Date.now()}.pdf`);
         };
 
@@ -156,9 +157,9 @@
 <body class="p-6 md:p-12">
 
     <div id="adminUI" class="hidden max-w-5xl mx-auto">
-        <div class="flex justify-between items-center mb-12">
+        <div class="flex justify-between items-center mb-10 pb-6 border-b border-white/10">
             <h1 class="text-4xl font-black italic text-emerald-500 uppercase tracking-tighter">CEO Terminal</h1>
-            <button onclick="location.reload()" class="bg-red-950/20 text-red-500 border border-red-900/50 px-6 py-2 rounded-full text-[10px] font-black uppercase">Terminate</button>
+            <button onclick="location.reload()" class="bg-red-950/20 text-red-500 border border-red-900/50 px-6 py-2 rounded-full text-[10px] font-black uppercase">Exit</button>
         </div>
         <div id="adminFeed"></div>
     </div>
@@ -167,11 +168,11 @@
         <header class="emerald-blur p-12 rounded-[60px] flex flex-col md:flex-row justify-between items-center border-b-8 border-emerald-500 shadow-2xl">
             <div>
                 <h1 class="text-7xl font-black italic text-emerald-500 tracking-tighter">ECOSTACK AI</h1>
-                <p class="text-[11px] text-emerald-900 font-black uppercase tracking-[0.5em] mt-2">Enterprise Recovery</p>
+                <p class="text-[11px] text-emerald-900 font-black uppercase mt-2 tracking-[0.5em]">Enterprise Recovery</p>
             </div>
             <div class="flex items-center gap-6">
                 <div class="bg-black/50 p-5 rounded-3xl border border-white/5 flex items-center gap-4">
-                    <span class="text-xs font-black text-emerald-900">NODES</span>
+                    <span class="text-xs font-black text-emerald-900 uppercase">Nodes</span>
                     <input type="number" id="srvInput" value="1" min="1" class="bg-transparent w-16 text-4xl font-black text-emerald-400 outline-none text-center">
                 </div>
                 <input type="password" id="ceoPin" oninput="loginCEO()" placeholder="CEO PIN" class="bg-emerald-950/20 border border-emerald-800/20 p-6 rounded-3xl text-center text-emerald-500 font-black outline-none w-44">
@@ -179,35 +180,31 @@
         </header>
 
         <main class="grid lg:grid-cols-2 gap-12">
-            <textarea id="codeIn" class="w-full h-[450px] bg-black border border-white/5 p-12 rounded-[80px] outline-none code-area text-white focus:border-emerald-500/20" placeholder="Paste Client's Worst Code..."></textarea>
+            <textarea id="codeIn" class="w-full h-[450px] bg-black border border-white/5 p-12 rounded-[80px] outline-none code-area text-white focus:border-emerald-500/20" placeholder="Paste Client's Code..."></textarea>
             <div class="relative">
                 <div id="lockLayer" class="absolute inset-0 z-20 bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center rounded-[80px] border border-white/5">
                     <div class="text-emerald-500 text-6xl mb-6 animate-pulse">🔒</div>
-                    <p class="text-[11px] font-black text-emerald-900 uppercase" id="lockMsg">Awaiting CEO Signature</p>
+                    <p class="text-[11px] font-black text-emerald-900 uppercase">Awaiting CEO Signature</p>
                 </div>
                 <textarea id="codeOut" readonly class="w-full h-[450px] bg-black border border-white/5 p-12 rounded-[80px] outline-none code-area text-emerald-400 italic"></textarea>
             </div>
         </main>
 
-        <section class="grid grid-cols-2 md:grid-cols-5 gap-8">
-            <div class="emerald-blur p-10 rounded-[45px] text-center border-b-4 border-red-900 shadow-lg">
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="emerald-blur p-10 rounded-[45px] text-center border-b-4 border-red-900">
                 <p class="text-[9px] text-red-600 font-black uppercase mb-2">Worst Case Expense</p>
                 <p id="dispLoss" class="text-2xl font-black text-red-500">₹0.00</p>
             </div>
             <div class="emerald-blur p-10 rounded-[45px] text-center"><p class="text-[9px] text-emerald-900 font-black uppercase">Server Load</p><p id="disp1" class="text-2xl font-black text-white">0 kWh</p></div>
             <div class="emerald-blur p-10 rounded-[45px] text-center border-t-2 border-emerald-500"><p class="text-[9px] text-emerald-500 font-black uppercase">Recapitalized</p><p id="disp3" class="text-2xl font-black text-white">₹0.00</p></div>
-            <div class="bg-emerald-500/10 border-2 border-emerald-500/20 p-10 rounded-[45px] text-center shadow-xl">
-                <p class="text-[9px] text-emerald-400 font-black uppercase">CEO FEE (35%)</p>
-                <p id="disp4" class="text-3xl font-black text-emerald-500">₹0.00</p>
-            </div>
-            <div class="emerald-blur p-10 rounded-[45px] flex items-center justify-center text-emerald-700 font-black italic">SECURE</div>
+            <div class="bg-emerald-500/10 border-2 border-emerald-500/20 p-10 rounded-[45px] text-center"><p class="text-[9px] text-emerald-400 font-black uppercase">CEO FEE</p><p id="disp4" class="text-3xl font-black text-emerald-500">₹0.00</p></div>
         </section>
 
         <footer class="grid md:grid-cols-3 gap-12 items-center emerald-blur p-14 rounded-[80px]">
             <div id="qrBox" class="bg-white p-6 rounded-[50px] w-64 h-64 mx-auto flex items-center justify-center shadow-2xl">READY</div>
             <div class="md:col-span-2 space-y-8">
-                <button onclick="reqApproval()" class="bg-emerald-500 hover:bg-emerald-400 w-full py-12 rounded-[50px] font-black uppercase text-black text-sm tracking-widest transition-all">Submit for CEO Approval</button>
-                <button id="pdfBtn" onclick="savePDF()" class="hidden w-full bg-white text-black py-8 rounded-[40px] font-black uppercase animate-bounce">Download Audit PDF</button>
+                <button onclick="window.requestCEO()" class="bg-emerald-500 hover:bg-emerald-400 w-full py-12 rounded-[50px] font-black uppercase text-black text-sm tracking-widest transition-all">Submit for CEO Approval</button>
+                <button id="pdfBtn" onclick="window.downloadPDF()" class="hidden w-full bg-white text-black py-8 rounded-[40px] font-black uppercase animate-bounce">Download Audit PDF</button>
             </div>
         </footer>
     </div>

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI | Enterprise Terminal v2.7</title>
+    <title>ECOSTACK AI | Enterprise Terminal v2.8</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // CEO ULTRA-SECURITY 2.7
+        // CEO ULTRA-SECURITY 2.8
         document.oncontextmenu = () => false;
         document.onkeydown = (e) => {
             if (e.keyCode == 123 || (e.ctrlKey && e.shiftKey && [73, 74, 67].includes(e.keyCode)) || (e.ctrlKey && e.keyCode == 85)) {
@@ -38,12 +38,16 @@
             text-transform: uppercase; opacity: 0;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .stamped-APPROVED { opacity: 0.4; color: #10b981; border-color: #10b981; display: block; }
-        .stamped-REJECTED { opacity: 0.4; color: #ef4444; border-color: #ef4444; display: block; }
+        .stamped-APPROVED { opacity: 0.6; color: #10b981; border-color: #10b981; display: block; }
+        .stamped-REJECTED { opacity: 0.6; color: #ef4444; border-color: #ef4444; display: block; }
 
-        .code-font { font-family: 'JetBrains Mono', monospace; font-size: 12px; line-height: 1.6; }
+        .code-font { font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5; }
         .hidden-element { display: none !important; }
         .btn-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: 0.3s; }
+        
+        /* Custom Scrollbar for Code */
+        pre::-webkit-scrollbar { width: 4px; }
+        pre::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 
     <script type="module">
@@ -61,24 +65,25 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let audit = { units: 0, worst: 0, opt: 0, savings: 0, ceo: 0, srv: 1, original: "", optimized: "" };
+        let audit = { worst: 0, opt: 0, savings: 0, ceo: 0, srv: 1, original: "", optimized: "" };
 
-        // REAL-TIME AUDIT LOGIC
         window.processAudit = function() {
             audit.original = document.getElementById('codeIn').value;
             audit.srv = Math.max(1, parseInt(document.getElementById('srvInput').value) || 1);
             
             if(audit.original.length < 5) { resetUI(); return; }
 
+            const lines = audit.original.split('\n').length;
             const complexity = audit.original.split('{').length;
-            audit.units = (audit.original.length * 0.05) + (complexity * 2.5);
-            audit.worst = (audit.units * 35 * audit.srv);
-            audit.opt = (audit.units * 10 * audit.srv);
+            
+            // Accurate Logic
+            audit.worst = (lines * 45 * audit.srv) + (complexity * 150);
+            audit.opt = (lines * 12 * audit.srv) + (complexity * 40);
             audit.savings = audit.worst - audit.opt;
             audit.ceo = audit.savings * 0.35;
 
-            audit.optimized = `/* ECOSTACK V2.7 SECURE */\n/* Nodes: ${audit.srv} */\n\n` + 
-                              audit.original.replace(/\n\s*\n/g, '\n').trim();
+            audit.optimized = `/* ECOSTACK V2.8 OPTIMIZED SYSTEM */\n/* Time: ${new Date().toLocaleTimeString()} | Node: ${audit.srv} */\n\n` + 
+                              audit.original.replace(/var/g, 'const').replace(/\n\s*\n/g, '\n').trim();
 
             updateMainUI();
         };
@@ -101,6 +106,7 @@
         window.requestApproval = function() {
             if(!audit.original || audit.ceo <= 0) return alert("System requires valid code.");
             const rid = "ESTK-" + Math.random().toString(36).substr(2, 6).toUpperCase();
+            
             push(ref(db, 'history'), {
                 id: rid, timestamp: Date.now(),
                 original: audit.original, optimized: audit.optimized,
@@ -108,10 +114,22 @@
                 savings: audit.savings, ceo: audit.ceo,
                 status: "PENDING"
             });
-            window.open(`https://wa.me/9096530829?text=NEW%20REQUEST:%20${rid}%20FEE:₹${Math.floor(audit.ceo)}`);
+
+            // Listen for changes to UNLOCK user screen
+            onValue(ref(db, 'history'), (snap) => {
+                const data = snap.val();
+                if(data) Object.values(data).forEach(item => {
+                    if(item.id === rid && item.status === "APPROVED") {
+                        document.getElementById('lockLayer').classList.add('hidden-element');
+                        document.getElementById('codeOut').value = item.optimized;
+                        document.getElementById('downloadArea').classList.remove('hidden-element');
+                    }
+                });
+            });
+
+            window.open(`https://wa.me/9096530829?text=NEW%20ECOSTACK%20REQUEST:%20${rid}%20|%20FEE:₹${Math.floor(audit.ceo)}`);
         };
 
-        // ADMIN LOGIC
         window.ceoLogin = function() {
             if(document.getElementById('ceoKey').value === "rubinaramjan@14") {
                 document.getElementById('userInterface').classList.add('hidden-element');
@@ -128,43 +146,47 @@
                 if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
                     container.innerHTML += `
-                    <div class="admin-card p-10 rounded-[50px] mb-10 border border-white/5">
+                    <div class="admin-card p-8 rounded-[40px] mb-12 border border-white/5">
                         <div class="stamp-box stamped-${r.status}">${r.status}</div>
                         
                         <div class="flex justify-between items-center mb-8">
                             <div>
-                                <h2 class="text-2xl font-black text-white">${r.id}</h2>
-                                <p class="text-xs text-slate-500">${new Date(r.timestamp).toLocaleString()}</p>
+                                <h2 class="text-3xl font-black text-white">${r.id}</h2>
+                                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">${new Date(r.timestamp).toLocaleString()}</p>
                             </div>
                             <div class="flex gap-4">
-                                <button onclick="handleDecision('${key}', 'APPROVED')" class="bg-emerald-600 px-8 py-3 rounded-2xl font-bold text-xs hover:scale-105 transition-all">APPROVE & STAMP</button>
-                                <button onclick="handleDecision('${key}', 'REJECTED')" class="bg-red-600 px-8 py-3 rounded-2xl font-bold text-xs hover:scale-105 transition-all">REJECT</button>
+                                <button onclick="handleDecision('${key}', 'APPROVED')" class="bg-emerald-600 px-10 py-4 rounded-2xl font-black text-[10px] hover:bg-emerald-400 transition-all text-white">GRANT ACCESS & STAMP</button>
+                                <button onclick="handleDecision('${key}', 'REJECTED')" class="bg-red-950/40 border border-red-500/50 px-10 py-4 rounded-2xl font-black text-[10px] text-red-500 hover:bg-red-600 hover:text-white transition-all">REJECT</button>
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 gap-6">
-                            <div class="bg-black/50 p-6 rounded-[30px] border border-white/5 relative">
-                                <p class="text-[10px] text-emerald-500 font-bold mb-4 uppercase tracking-widest">Client Source Code (Full View)</p>
-                                <pre class="code-font text-slate-400 h-96 overflow-auto">${sanitize(r.original)}</pre>
+                        <div class="grid lg:grid-cols-2 gap-4">
+                            <div class="bg-black/80 p-6 rounded-3xl border border-white/5">
+                                <p class="text-[9px] text-red-500 font-bold mb-3 uppercase tracking-widest">Worst-Case Code (Full)</p>
+                                <pre class="code-font text-slate-500 h-80 overflow-auto">${sanitize(r.original)}</pre>
+                            </div>
+                            <div class="bg-emerald-950/10 p-6 rounded-3xl border border-emerald-500/10">
+                                <p class="text-[9px] text-emerald-500 font-bold mb-3 uppercase tracking-widest">Optimized Output</p>
+                                <pre class="code-font text-emerald-200 h-80 overflow-auto">${sanitize(r.optimized)}</pre>
                             </div>
                         </div>
 
                         <div class="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-red-950/20 p-4 rounded-2xl border border-red-500/20">
-                                <p class="text-[9px] text-red-500 font-bold uppercase">Worst Case</p>
+                            <div class="bg-black p-4 rounded-2xl border-l-2 border-red-600">
+                                <p class="text-[8px] text-slate-500 uppercase font-bold">Worst Bill</p>
                                 <p class="text-lg font-black text-white">₹${Math.floor(r.worst).toLocaleString()}</p>
                             </div>
-                            <div class="bg-emerald-950/20 p-4 rounded-2xl border border-emerald-500/20">
-                                <p class="text-[9px] text-emerald-500 font-bold uppercase">Optimized Case</p>
+                            <div class="bg-black p-4 rounded-2xl border-l-2 border-emerald-600">
+                                <p class="text-[8px] text-slate-500 uppercase font-bold">Opt Bill</p>
                                 <p class="text-lg font-black text-white">₹${Math.floor(r.opt).toLocaleString()}</p>
                             </div>
-                            <div class="bg-blue-950/20 p-4 rounded-2xl border border-blue-500/20">
-                                <p class="text-[9px] text-blue-500 font-bold uppercase">Savings</p>
+                            <div class="bg-black p-4 rounded-2xl border-l-2 border-blue-600">
+                                <p class="text-[8px] text-slate-500 uppercase font-bold">Savings</p>
                                 <p class="text-lg font-black text-white">₹${Math.floor(r.savings).toLocaleString()}</p>
                             </div>
-                            <div class="bg-yellow-950/20 p-4 rounded-2xl border border-yellow-500/20">
-                                <p class="text-[9px] text-yellow-500 font-bold uppercase">CEO 35% FEE</p>
-                                <p class="text-xl font-black text-yellow-500">₹${Math.floor(r.ceo).toLocaleString()}</p>
+                            <div class="bg-emerald-500/10 p-4 rounded-2xl border-l-2 border-yellow-500">
+                                <p class="text-[8px] text-yellow-500 uppercase font-bold">CEO 35% FEE</p>
+                                <p class="text-xl font-black text-yellow-400">₹${Math.floor(r.ceo).toLocaleString()}</p>
                             </div>
                         </div>
                     </div>`;
@@ -179,17 +201,17 @@
         window.generatePDF = function() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            doc.setFillColor(10, 10, 10); doc.rect(0, 0, 210, 297, 'F');
-            doc.setTextColor(16, 185, 129); doc.setFontSize(22); doc.text("ECOSTACK AI REPORT", 20, 30);
+            doc.setFillColor(5, 5, 5); doc.rect(0, 0, 210, 297, 'F');
+            doc.setTextColor(16, 185, 129); doc.setFontSize(24); doc.text("ECOSTACK AI REPORT", 20, 30);
             doc.setTextColor(255, 255, 255); doc.setFontSize(10);
-            doc.text(`Timestamp: ${new Date().toLocaleString()}`, 20, 45);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 45);
             doc.line(20, 50, 190, 50);
             doc.text(`1. Worst Code Fee: Rs. ${Math.floor(audit.worst)}`, 20, 65);
             doc.text(`2. Optimized Fee: Rs. ${Math.floor(audit.opt)}`, 20, 75);
-            doc.text(`3. Net Savings: Rs. ${Math.floor(audit.savings)}`, 20, 85);
-            doc.setTextColor(255, 180, 0);
-            doc.text(`4. CEO Commission (35%): Rs. ${Math.floor(audit.ceo)}`, 20, 95);
-            doc.save(`Ecostack_Audit.pdf`);
+            doc.text(`3. Total Savings: Rs. ${Math.floor(audit.savings)}`, 20, 85);
+            doc.setTextColor(255, 200, 0);
+            doc.text(`4. CEO COMMISSION (35%): Rs. ${Math.floor(audit.ceo)}`, 20, 100);
+            doc.save(`Ecostack_Report_${Date.now()}.pdf`);
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -198,67 +220,74 @@
         });
     </script>
 </head>
-<body class="p-6 md:p-12">
+<body class="p-4 md:p-10">
 
     <div id="adminTerminal" class="hidden-element max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-16">
-            <h1 class="text-4xl font-black text-white tracking-tighter">CEO COMMAND <span class="text-emerald-500">v2.7</span></h1>
-            <button onclick="location.reload()" class="text-xs font-bold text-red-500 border border-red-500/20 px-6 py-2 rounded-full">LOGOUT</button>
+        <header class="flex justify-between items-center mb-12">
+            <div>
+                <h1 class="text-4xl font-black text-white tracking-tighter">CEO COMMAND CENTER</h1>
+                <p class="text-emerald-500 text-[10px] font-bold tracking-[0.5em]">REAL-TIME AUDIT LOGS</p>
+            </div>
+            <button onclick="location.reload()" class="bg-red-600/10 text-red-500 border border-red-500/30 px-8 py-3 rounded-full text-[10px] font-bold">LOGOUT</button>
         </header>
         <div id="adminFeed"></div>
     </div>
 
     <div id="userInterface" class="max-w-7xl mx-auto">
-        <header class="emerald-glass p-12 rounded-[50px] border-b-4 border-emerald-500 mb-12 flex flex-col lg:flex-row justify-between items-center">
+        <header class="emerald-glass p-10 rounded-[50px] border-b-4 border-emerald-500 mb-10 flex flex-col lg:flex-row justify-between items-center">
             <div>
                 <h1 class="text-6xl font-black italic text-emerald-500 tracking-tighter">ECOSTACK AI</h1>
-                <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.5em] mt-3">Secure Enterprise Code Optimization</p>
+                <p class="text-[10px] text-slate-600 font-bold uppercase tracking-[0.4em] mt-2">Enterprise Encryption Active</p>
             </div>
-            <div class="flex gap-4 mt-8 lg:mt-0">
+            <div class="flex gap-4 mt-6 lg:mt-0">
                 <div class="bg-black/60 px-6 py-2 rounded-2xl border border-white/5">
-                    <span class="text-[9px] text-slate-500 block uppercase font-bold">Node Count</span>
-                    <input type="number" id="srvInput" value="1" class="bg-transparent text-2xl font-black text-emerald-500 outline-none w-14">
+                    <span class="text-[9px] text-slate-500 block uppercase font-bold">Execution Nodes</span>
+                    <input type="number" id="srvInput" value="1" class="bg-transparent text-2xl font-black text-emerald-500 outline-none w-12">
                 </div>
-                <input type="password" id="ceoKey" oninput="ceoLogin()" placeholder="CEO ACCESS" class="bg-emerald-950/20 border border-white/10 px-6 rounded-2xl text-emerald-500 font-black outline-none w-40 focus:border-emerald-500">
+                <input type="password" id="ceoKey" oninput="ceoLogin()" placeholder="CEO KEY" class="bg-emerald-950/20 border border-white/10 px-6 rounded-2xl text-emerald-500 font-black outline-none w-36 focus:border-emerald-500">
             </div>
         </header>
 
-        <main class="grid lg:grid-cols-2 gap-10">
-            <textarea id="codeIn" class="w-full h-[400px] bg-black border border-white/5 p-10 rounded-[60px] outline-none code-font text-slate-400 focus:border-emerald-500/20" placeholder="Insert source code for audit..."></textarea>
-            <div class="relative">
-                <div id="lockLayer" class="absolute inset-0 z-20 bg-black/90 backdrop-blur-xl flex flex-col items-center justify-center rounded-[60px] border border-white/5">
-                    <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
-                    <p class="text-[10px] text-emerald-500 font-black uppercase tracking-widest">Awaiting Verification</p>
+        <main class="grid lg:grid-cols-2 gap-8">
+            <div class="space-y-4">
+                <p class="text-[10px] font-bold text-slate-700 px-6 uppercase tracking-widest">Source Terminal</p>
+                <textarea id="codeIn" class="w-full h-[380px] bg-black border border-white/5 p-8 rounded-[50px] outline-none code-font text-slate-400 focus:border-emerald-500/20" placeholder="Paste unoptimized code..."></textarea>
+            </div>
+            <div class="relative space-y-4">
+                <p class="text-[10px] font-bold text-emerald-900 px-6 uppercase tracking-widest">Optimized Core</p>
+                <div id="lockLayer" class="absolute inset-0 z-20 bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center rounded-[50px] border border-white/5 mt-8">
+                    <div class="w-10 h-10 border-2 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-4"></div>
+                    <p class="text-[9px] text-emerald-500 font-black uppercase tracking-[0.3em]">Encrypted Output</p>
                 </div>
-                <textarea id="codeOut" readonly class="w-full h-[400px] bg-black border border-emerald-500/10 p-10 rounded-[60px] code-font text-emerald-500/40 italic"></textarea>
+                <textarea id="codeOut" readonly class="w-full h-[380px] bg-black border border-emerald-500/10 p-8 rounded-[50px] code-font text-emerald-500/50 italic" placeholder="// Handshake pending..."></textarea>
             </div>
         </main>
 
-        <section class="grid grid-cols-2 md:grid-cols-4 gap-6 mt-12">
-            <div class="emerald-glass p-8 rounded-[40px] border-l-4 border-red-500">
-                <p class="text-[9px] text-slate-500 uppercase font-black mb-1">Worst Code Bill</p>
-                <p id="res_worst" class="text-2xl font-black text-white">₹0</p>
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-10">
+            <div class="emerald-glass p-6 rounded-[35px] border-l-4 border-red-500">
+                <p class="text-[8px] text-slate-500 uppercase font-black">Worst Bill</p>
+                <p id="res_worst" class="text-xl font-black text-white">₹0</p>
             </div>
-            <div class="emerald-glass p-8 rounded-[40px] border-l-4 border-emerald-500">
-                <p class="text-[9px] text-slate-500 uppercase font-black mb-1">Optimized Bill</p>
-                <p id="res_opt" class="text-2xl font-black text-white">₹0</p>
+            <div class="emerald-glass p-6 rounded-[35px] border-l-4 border-emerald-500">
+                <p class="text-[8px] text-slate-500 uppercase font-black">Optimized Bill</p>
+                <p id="res_opt" class="text-xl font-black text-white">₹0</p>
             </div>
-            <div class="emerald-glass p-8 rounded-[40px] border-l-4 border-blue-500">
-                <p class="text-[9px] text-slate-500 uppercase font-black mb-1">Total Savings</p>
-                <p id="res_diff" class="text-2xl font-black text-white">₹0</p>
+            <div class="emerald-glass p-6 rounded-[35px] border-l-4 border-blue-500">
+                <p class="text-[8px] text-slate-500 uppercase font-black">Net Savings</p>
+                <p id="res_diff" class="text-xl font-black text-white">₹0</p>
             </div>
-            <div class="bg-emerald-500/10 p-8 rounded-[40px] border-l-4 border-yellow-500">
-                <p class="text-[9px] text-yellow-500 uppercase font-black mb-1">CEO Commission (35%)</p>
-                <p id="res_ceo" class="text-3xl font-black text-yellow-500">₹0</p>
+            <div class="bg-emerald-500/10 p-6 rounded-[35px] border-l-4 border-yellow-500">
+                <p class="text-[8px] text-yellow-600 uppercase font-black">CEO 35% FEE</p>
+                <p id="res_ceo" class="text-2xl font-black text-yellow-500">₹0</p>
             </div>
         </section>
 
-        <footer class="mt-12 grid md:grid-cols-3 gap-8 bg-zinc-950 p-10 rounded-[60px] border border-white/5 items-center">
-            <div id="qrBox" class="h-44 bg-black rounded-[40px] flex items-center justify-center text-[10px] font-black tracking-[0.3em] text-emerald-900 border border-white/5">QR READY</div>
+        <footer class="mt-10 grid md:grid-cols-3 gap-8 bg-black/50 p-10 rounded-[50px] border border-white/5 items-center">
+            <div id="qrBox" class="h-40 bg-black rounded-[35px] flex items-center justify-center text-[10px] font-black tracking-widest text-emerald-900 border border-white/5">QR SECURE</div>
             <div class="md:col-span-2 space-y-4">
-                <button onclick="requestApproval()" class="btn-emerald w-full py-10 rounded-[40px] font-black text-xs uppercase tracking-widest text-white shadow-2xl">Initialize Secure Optimization Handshake</button>
+                <button onclick="requestApproval()" class="btn-emerald w-full py-8 rounded-[35px] font-black text-[11px] uppercase tracking-[0.2em] text-white shadow-2xl">Submit Code For CEO Audit</button>
                 <div id="downloadArea" class="hidden-element">
-                    <button onclick="generatePDF()" class="w-full bg-white text-black py-6 rounded-[30px] text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">Download Audit Report (.PDF)</button>
+                    <button onclick="generatePDF()" class="w-full bg-white text-black py-4 rounded-3xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all">Download Audit Dossier (.PDF)</button>
                 </div>
             </div>
         </footer>

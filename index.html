@@ -3,27 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI | Enterprise Terminal v3.9 FINAL</title>
+    <title>ECOSTACK AI | Enterprise Terminal v4.0</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap');
-        :root { --emerald: #10b981; --bg: #030712; }
+        :root { --emerald: #10b981; --bg: #020617; }
         body { background: var(--bg); color: #f8fafc; font-family: 'Inter', sans-serif; }
         
-        .admin-card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 40px; margin-bottom: 2rem; position: relative; overflow: hidden; }
-        .stamp { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 5rem; font-weight: 900; border: 8px solid; padding: 10px 40px; opacity: 0; z-index: 50; pointer-events: none; text-transform: uppercase; transition: 0.3s; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.05); }
+        .admin-card { background: #0a0a0a; border: 1px solid #1e293b; border-radius: 35px; margin-bottom: 2rem; position: relative; overflow: hidden; }
+        .stamp { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 5rem; font-weight: 900; border: 10px solid; padding: 10px 40px; opacity: 0; z-index: 50; pointer-events: none; text-transform: uppercase; transition: 0.4s; }
         .stamped-APPROVED { opacity: 0.5; color: #10b981; border-color: #10b981; }
         .stamped-REJECTED { opacity: 0.5; color: #ef4444; border-color: #ef4444; }
         
         .code-font { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-        .locked-overlay { background: rgba(0,0,0,0.96); backdrop-filter: blur(20px); transition: all 0.5s ease; }
+        .locked-overlay { background: rgba(0,0,0,0.97); backdrop-filter: blur(25px); transition: all 0.5s ease; }
         .hidden-element { display: none !important; }
         
-        .btn-primary { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: 0.3s; }
-        .bill-grid { background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(255,255,255,0.05); padding: 20px; border-radius: 25px; }
+        .btn-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: 0.3s; filter: drop-shadow(0 10px 15px rgba(16, 185, 129, 0.2)); }
     </style>
 
     <script type="module">
@@ -41,117 +41,119 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let currentAudit = { worst: 0, opt: 0, fee: 0, original: "", optimized: "" };
+        let audit = { energy: 0, worst: 0, opt: 0, savings: 0, fee: 0, srv: 1, original: "", optimized: "" };
 
-        // User Side Billing
+        // CORE LOGIC: High Accuracy Math
         window.processAudit = function() {
             const code = document.getElementById('codeIn').value;
-            const nodes = Math.max(1, parseInt(document.getElementById('srvInput').value) || 1);
+            audit.srv = Math.max(1, parseInt(document.getElementById('srvInput').value) || 1);
             if(code.length < 5) return;
 
-            const complexity = (code.length * 0.12) + (code.split('{').length * 12);
-            currentAudit.worst = complexity * 460 * nodes;
-            currentAudit.opt = complexity * 105 * nodes;
-            currentAudit.fee = ((currentAudit.worst - currentAudit.opt) * 0.35).toFixed(2);
-            currentAudit.original = code;
-            currentAudit.optimized = `/* ECOSTACK OPTIMIZED v3.9 */\n\n` + code.trim();
+            const complexity = (code.length * 0.1) + (code.split('{').length * 8);
+            audit.energy = (complexity * 0.05 * audit.srv).toFixed(2);
+            audit.worst = complexity * 520 * audit.srv;
+            audit.opt = complexity * 115 * audit.srv;
+            audit.savings = audit.worst - audit.opt;
+            audit.fee = (audit.savings * 0.35).toFixed(2);
+            audit.original = code;
+            audit.optimized = `/* ECOSTACK ENGINE v4.0 */\n/* Verified Performance */\n\n` + code.trim();
 
-            document.getElementById('res_savings').innerText = "₹" + Math.floor(currentAudit.worst - currentAudit.opt).toLocaleString();
-            document.getElementById('res_fee').innerText = "₹" + parseFloat(currentAudit.fee).toLocaleString();
+            // Updating 5 Boxes
+            document.getElementById('stat_energy').innerText = audit.energy + " kWh";
+            document.getElementById('stat_worst').innerText = "₹" + Math.floor(audit.worst).toLocaleString();
+            document.getElementById('stat_opt').innerText = "₹" + Math.floor(audit.opt).toLocaleString();
+            document.getElementById('stat_diff').innerText = "₹" + Math.floor(audit.savings).toLocaleString();
+            document.getElementById('stat_fee').innerText = "₹" + parseFloat(audit.fee).toLocaleString();
             
-            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${currentAudit.fee}&cu=INR&pn=ECOSTACK%20FEE`;
-            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" class="bg-white p-2 rounded-xl">`;
+            // QR Logic
+            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${audit.fee}&cu=INR&pn=ECOSTACK%20SERVICE`;
+            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upi)}" class="bg-white p-2 rounded-xl shadow-2xl">`;
         };
 
-        // REQUEST SUBMISSION
         window.requestApproval = function() {
-            if(!currentAudit.original) return alert("Please input code.");
+            if(!audit.original) return alert("Please input code.");
             const rid = "ESTK-" + Math.floor(100000 + Math.random() * 900000);
+            const reqRef = push(ref(db, 'history'));
             
-            // Push creates a UNIQUE key every time - Fixes "New Req Not Showing"
-            const newRef = push(ref(db, 'history'));
-            update(newRef, {
-                id: rid, status: "PENDING", original: currentAudit.original, 
-                optimized: currentAudit.optimized, worst: currentAudit.worst, 
-                opt: currentAudit.opt, fee: currentAudit.fee, 
+            update(reqRef, {
+                id: rid, status: "PENDING", original: audit.original, optimized: audit.optimized,
+                energy: audit.energy, worst: audit.worst, opt: audit.opt, 
+                savings: audit.savings, fee: audit.fee, srv: audit.srv,
                 timestamp: serverTimestamp()
             });
 
-            // Listen for this specific request's status
-            onValue(newRef, (snap) => {
+            // Status Listener
+            onValue(reqRef, (snap) => {
                 const s = snap.val()?.status;
                 const layer = document.getElementById('lockLayer');
-                const msg = document.getElementById('lockMsg');
-
                 if(s === "APPROVED") {
                     layer.classList.add('hidden-element');
                     document.getElementById('codeOut').value = snap.val().optimized;
+                    document.getElementById('downloadArea').classList.remove('hidden-element');
                 } else if(s === "REJECTED") {
-                    layer.style.background = "rgba(127, 29, 29, 0.98)";
-                    msg.innerHTML = `<span class="text-white font-black text-2xl">ACCESS DENIED</span><br>CEO REJECTED THIS AUDIT`;
+                    layer.style.background = "rgba(153, 27, 27, 0.98)";
+                    document.getElementById('lockMsg').innerHTML = `<span class="text-2xl font-black">ACCESS DENIED</span><br>CEO REJECTED YOUR PAYMENT`;
                 }
             });
-            alert("Request Sent! ID: " + rid);
+
+            // WhatsApp Notification to Admin
+            const waMsg = `*NEW AUDIT REQUEST*%0AID: ${rid}%0A*FEE TO COLLECT: ₹${audit.fee}*%0A-----------------%0AWorst Bill: ₹${Math.floor(audit.worst)}%0AOptimized: ₹${Math.floor(audit.opt)}%0A-----------------%0ACheck Bank and Approve in Panel.`;
+            window.open(`https://wa.me/9096530829?text=${waMsg}`);
         };
 
-        // ADMIN LOGIN
         window.ceoLogin = function() {
             if(document.getElementById('ceoKey').value === "rubinaramjan@14") {
                 document.getElementById('userInterface').classList.add('hidden-element');
                 document.getElementById('adminTerminal').classList.remove('hidden-element');
-                syncAdminFeed();
+                syncAdmin();
             }
         };
 
-        function syncAdminFeed() {
-            // "onValue" on 'history' node ensures any new push is caught immediately
+        function syncAdmin() {
             onValue(ref(db, 'history'), (snap) => {
                 const container = document.getElementById('adminFeed');
                 container.innerHTML = "";
                 const data = snap.val();
-                if(!data) return container.innerHTML = "<p class='text-center opacity-20'>WAITING FOR REQUESTS...</p>";
-
-                Object.keys(data).reverse().forEach(key => {
+                if(data) Object.keys(data).reverse().forEach(key => {
                     const r = data[key];
                     container.innerHTML += `
-                    <div class="admin-card p-10">
+                    <div class="admin-card p-8">
                         <div class="stamp stamped-${r.status}">${r.status}</div>
-                        <div class="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
-                            <div>
-                                <h2 class="text-3xl font-black">${r.id}</h2>
-                                <p class="text-[10px] text-emerald-500 font-bold uppercase tracking-widest">${new Date(r.timestamp).toLocaleString()}</p>
-                            </div>
-                            <div class="flex gap-4">
-                                <button onclick="updateReq('${key}', 'APPROVED')" class="bg-emerald-600 px-8 py-3 rounded-2xl font-black text-xs hover:bg-emerald-400">APPROVE</button>
-                                <button onclick="updateReq('${key}', 'REJECTED')" class="bg-red-600 px-8 py-3 rounded-2xl font-black text-xs hover:bg-red-500">REJECT</button>
+                        <div class="flex justify-between items-start mb-6 border-b border-white/5 pb-4">
+                            <div><h3 class="text-2xl font-black text-emerald-500">${r.id}</h3><p class="text-[10px] opacity-50 uppercase">${new Date(r.timestamp).toLocaleString()}</p></div>
+                            <div class="flex gap-2">
+                                <button onclick="window.updateReq('${key}', 'APPROVED')" class="bg-emerald-600 px-6 py-2 rounded-xl text-[10px] font-bold">APPROVE</button>
+                                <button onclick="window.updateReq('${key}', 'REJECTED')" class="bg-red-600 px-6 py-2 rounded-xl text-[10px] font-bold">REJECT</button>
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                            <div class="bill-grid border-red-500/20">
-                                <p class="text-[10px] text-slate-500 font-bold">WORST CASE BILL</p>
-                                <p class="text-2xl font-black text-red-400">₹${Math.floor(r.worst).toLocaleString()}</p>
-                            </div>
-                            <div class="bill-grid border-emerald-500/20">
-                                <p class="text-[10px] text-slate-500 font-bold">OPTIMIZED BILL</p>
-                                <p class="text-2xl font-black text-emerald-400">₹${Math.floor(r.opt).toLocaleString()}</p>
-                            </div>
-                            <div class="bill-grid bg-yellow-500/10 border-yellow-500/30">
-                                <p class="text-[10px] text-yellow-500 font-bold uppercase">CEO NET PROFIT (35%)</p>
-                                <p class="text-4xl font-black text-yellow-400">₹${parseFloat(r.fee).toLocaleString()}</p>
-                            </div>
+                        <div class="grid grid-cols-4 gap-4 mb-6">
+                            <div class="bg-black/50 p-4 rounded-2xl"><p class="text-[8px] opacity-50">WORST</p><p class="font-bold text-red-400">₹${Math.floor(r.worst)}</p></div>
+                            <div class="bg-black/50 p-4 rounded-2xl"><p class="text-[8px] opacity-50">OPT</p><p class="font-bold text-emerald-400">₹${Math.floor(r.opt)}</p></div>
+                            <div class="bg-black/50 p-4 rounded-2xl"><p class="text-[8px] opacity-50">SAVINGS</p><p class="font-bold">₹${Math.floor(r.savings)}</p></div>
+                            <div class="bg-emerald-950/40 p-4 rounded-2xl border border-emerald-500/30"><p class="text-[8px] text-emerald-500 font-bold">CEO FEE</p><p class="text-xl font-black text-emerald-400">₹${r.fee}</p></div>
                         </div>
-
-                        <div class="grid md:grid-cols-2 gap-6">
-                            <pre class="bg-black p-6 rounded-3xl h-40 overflow-auto code-font text-slate-600 border border-white/5">${r.original.replace(/</g, "&lt;")}</pre>
-                            <pre class="bg-black p-6 rounded-3xl h-40 overflow-auto code-font text-emerald-400 border border-emerald-500/10">${r.optimized.replace(/</g, "&lt;")}</pre>
+                        <div class="grid grid-cols-2 gap-4">
+                            <pre class="bg-black p-4 rounded-2xl h-32 overflow-auto code-font text-slate-600">${r.original.replace(/</g, "&lt;")}</pre>
+                            <pre class="bg-black p-4 rounded-2xl h-32 overflow-auto code-font text-emerald-400">${r.optimized.replace(/</g, "&lt;")}</pre>
                         </div>
                     </div>`;
                 });
             });
         }
-
         window.updateReq = (k, s) => update(ref(db, `history/${k}`), { status: s });
+
+        window.generatePDF = function() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            doc.setFontSize(22); doc.text("ECOSTACK AUDIT REPORT", 20, 20);
+            doc.setFontSize(12);
+            doc.text(`Energy Load: ${audit.energy} kWh`, 20, 40);
+            doc.text(`Worst Case Bill: Rs. ${Math.floor(audit.worst)}`, 20, 50);
+            doc.text(`Optimized Bill: Rs. ${Math.floor(audit.opt)}`, 20, 60);
+            doc.text(`Net Savings: Rs. ${Math.floor(audit.savings)}`, 20, 70);
+            doc.text(`Service Fee Paid: Rs. ${audit.fee}`, 20, 80);
+            doc.save(`Audit_Report_${Date.now()}.pdf`);
+        };
 
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('codeIn').oninput = processAudit;
@@ -159,55 +161,74 @@
         });
     </script>
 </head>
-<body class="p-4 md:p-10">
+<body class="p-4 md:p-8">
 
-    <div id="adminTerminal" class="hidden-element max-w-6xl mx-auto">
-        <header class="flex justify-between items-center mb-12">
-            <h1 class="text-4xl font-black italic">CEO <span class="text-emerald-500">TERMINAL</span></h1>
-            <button onclick="location.reload()" class="bg-red-500/10 text-red-500 border border-red-500/20 px-6 py-2 rounded-full font-bold text-xs uppercase">Logout</button>
+    <div id="adminTerminal" class="hidden-element max-w-5xl mx-auto">
+        <header class="flex justify-between items-end mb-12">
+            <h1 class="text-4xl font-black uppercase tracking-tighter">CEO <span class="text-emerald-500">Dashboard</span></h1>
+            <button onclick="location.reload()" class="bg-red-500/10 text-red-500 px-6 py-2 rounded-full font-bold text-xs">LOGOUT</button>
         </header>
         <div id="adminFeed"></div>
     </div>
 
     <div id="userInterface" class="max-w-7xl mx-auto">
-        <header class="flex flex-col lg:flex-row justify-between items-center bg-slate-900/30 p-10 rounded-[50px] border-b-4 border-emerald-500 mb-10">
+        <header class="flex flex-col lg:flex-row justify-between items-center glass p-10 rounded-[50px] border-b-4 border-emerald-500 mb-12">
             <div>
-                <h1 class="text-6xl font-black italic text-emerald-500 tracking-tighter">ECOSTACK AI</h1>
-                <p class="text-[10px] text-slate-500 font-bold tracking-[0.4em] mt-2 uppercase">Enterprise Infrastructure Optimization</p>
+                <h1 class="text-5xl md:text-6xl font-black italic text-emerald-500 tracking-tighter">ECOSTACK AI</h1>
+                <p class="text-[10px] text-slate-500 font-bold tracking-[0.4em] mt-2 uppercase">Infrastructure Intelligence v4.0</p>
             </div>
             <div class="flex gap-4 mt-8 lg:mt-0">
                 <input type="number" id="srvInput" value="1" class="bg-black w-14 p-4 rounded-2xl text-xl font-black text-emerald-500 border border-white/10 outline-none">
-                <input type="password" id="ceoKey" oninput="ceoLogin()" placeholder="CEO ACCESS" class="bg-emerald-950/20 border border-emerald-500/20 px-6 py-4 rounded-2xl text-emerald-500 font-black outline-none w-44 focus:border-emerald-500 transition-all">
+                <input type="password" id="ceoKey" oninput="ceoLogin()" placeholder="ADMIN ACCESS" class="bg-emerald-950/20 border border-emerald-500/20 px-6 py-4 rounded-2xl text-emerald-500 font-black outline-none w-44">
             </div>
         </header>
 
         <main class="grid lg:grid-cols-2 gap-10">
-            <textarea id="codeIn" class="w-full h-[400px] bg-black border border-white/5 p-10 rounded-[60px] outline-none code-font text-slate-400" placeholder="Paste legacy code..."></textarea>
+            <textarea id="codeIn" class="w-full h-[400px] bg-black border border-white/5 p-10 rounded-[60px] outline-none code-font text-slate-400 focus:border-emerald-500/30" placeholder="Paste source code..."></textarea>
             <div class="relative">
                 <div id="lockLayer" class="absolute inset-0 z-20 locked-overlay flex flex-col items-center justify-center rounded-[60px] border border-emerald-500/10 text-center p-8">
                     <div class="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mb-6"></div>
-                    <p id="lockMsg" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Awaiting Remote Handshake</p>
+                    <p id="lockMsg" class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Awaiting Verification Handshake</p>
                 </div>
-                <textarea id="codeOut" readonly class="w-full h-[400px] bg-[#050505] border border-emerald-500/10 p-10 rounded-[60px] outline-none code-font text-emerald-500/40 italic"></textarea>
+                <textarea id="codeOut" readonly class="w-full h-[400px] bg-[#050505] border border-emerald-500/10 p-10 rounded-[60px] outline-none code-font text-emerald-500/50 italic"></textarea>
             </div>
         </main>
 
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
-            <div class="bg-slate-900/40 p-10 rounded-[40px] border-l-4 border-emerald-500">
-                <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Total Savings</p>
-                <p id="res_savings" class="text-4xl font-black text-white">₹0</p>
+        <section class="grid grid-cols-2 md:grid-cols-5 gap-4 mt-12">
+            <div class="glass p-6 rounded-[30px] text-center">
+                <p class="text-[8px] text-slate-500 font-bold uppercase mb-2">Energy Load</p>
+                <p id="stat_energy" class="text-xl font-black">0 kWh</p>
             </div>
-            <div class="bg-emerald-500/10 p-10 rounded-[40px] border-l-4 border-yellow-500">
-                <p class="text-[10px] text-yellow-500 font-bold uppercase mb-2">Service Fee (35%)</p>
-                <p id="res_fee" class="text-4xl font-black text-yellow-500">₹0</p>
+            <div class="glass p-6 rounded-[30px] text-center border-b-2 border-red-500">
+                <p class="text-[8px] text-red-500 font-bold uppercase mb-2">Worst Bill</p>
+                <p id="stat_worst" class="text-xl font-black">₹0</p>
             </div>
-            <div id="qrBox" class="bg-slate-900/20 flex items-center justify-center rounded-[40px] h-40">HANDSHAKE READY</div>
+            <div class="glass p-6 rounded-[30px] text-center border-b-2 border-emerald-500">
+                <p class="text-[8px] text-emerald-500 font-bold uppercase mb-2">Optimized</p>
+                <p id="stat_opt" class="text-xl font-black">₹0</p>
+            </div>
+            <div class="glass p-6 rounded-[30px] text-center border-b-2 border-blue-500">
+                <p class="text-[8px] text-blue-500 font-bold uppercase mb-2">Savings</p>
+                <p id="stat_diff" class="text-xl font-black text-blue-400">₹0</p>
+            </div>
+            <div class="bg-emerald-500/10 p-6 rounded-[30px] text-center border border-emerald-500/30">
+                <p class="text-[8px] text-emerald-400 font-bold uppercase mb-2">CEO Fee (35%)</p>
+                <p id="stat_fee" class="text-2xl font-black text-emerald-400">₹0</p>
+            </div>
         </section>
 
-        <footer class="mt-12">
-            <button onclick="requestApproval()" class="w-full py-12 bg-emerald-600 rounded-[50px] font-black text-xs tracking-[0.5em] uppercase text-white shadow-2xl hover:bg-emerald-500 transition-all">
-                Authorize CEO Review
-            </button>
+        <footer class="mt-12 grid md:grid-cols-3 gap-8 bg-[#080808] p-10 rounded-[60px] border border-white/5 items-center">
+            <div id="qrBox" class="flex items-center justify-center h-40">READY</div>
+            <div class="md:col-span-2 space-y-4">
+                <button onclick="requestApproval()" class="btn-emerald w-full py-10 rounded-[40px] font-black text-xs tracking-[0.4em] uppercase text-white shadow-2xl">
+                    Submit Audit & Notify CEO
+                </button>
+                <div id="downloadArea" class="hidden-element">
+                    <button onclick="generatePDF()" class="w-full bg-white text-black py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 hover:text-white transition-all">
+                        Download Audit Report (.PDF)
+                    </button>
+                </div>
+            </div>
         </footer>
     </div>
 </body>

@@ -3,113 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECOSTACK AI | Cloud v4.6</title>
+    <title>ECOSTACK AI | Enterprise Terminal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=JetBrains+Mono&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono&display=swap');
         body { background: #020617; color: #f8fafc; font-family: 'Inter', sans-serif; }
-        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.05); }
-        .code-font { font-family: 'JetBrains Mono', monospace; font-size: 13px; }
-        .btn-glow { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 0 20px rgba(16,185,129,0.2); transition: 0.3s; }
+        .glass { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.05); }
+        .admin-card { background: #0a0a0a; border: 1px solid #1e293b; border-radius: 30px; padding: 25px; margin-bottom: 1.5rem; position: relative; }
+        .stamp { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) rotate(-15deg); font-size: 3rem; font-weight: 900; opacity: 0.2; pointer-events: none; text-transform: uppercase; }
+        .code-font { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
         .hidden-element { display: none !important; }
+        .btn-emerald { background: linear-gradient(135deg, #10b981 0%, #059669 100%); transition: 0.3s; }
     </style>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        const fbConfig = { apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0", authDomain: "autostack-ai.firebaseapp.com", projectId: "autostack-ai", databaseURL: "https://autostack-ai-default-rtdb.firebaseio.com", appId: "1:35493907558:web:34c1c21e5a85bcae2131a7" };
-        const db = getDatabase(initializeApp(fbConfig));
+        const fbConfig = { 
+            apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0", 
+            authDomain: "autostack-ai.firebaseapp.com", 
+            projectId: "autostack-ai", 
+            databaseURL: "https://autostack-ai-default-rtdb.firebaseio.com", 
+            appId: "1:35493907558:web:34c1c21e5a85bcae2131a7" 
+        };
+        const app = initializeApp(fbConfig);
+        const db = getDatabase(app);
 
-        window.audit = { id: "ESTK-INIT", energy: 0, worst: 0, opt: 0, savings: 0, fee: 0, srv: 1, original: "" };
+        window.audit = { id: "TEMP", energy: 0, worst: 0, opt: 0, savings: 0, fee: 0, srv: 1, original: "", optimized: "" };
 
-        // AWS LAMBDA PRICING LOGIC (Option 1 Integration)
+        // 1. IMPROVED BILLING LOGIC
         window.processAudit = function() {
             const code = document.getElementById('codeIn').value;
             window.audit.srv = Math.max(1, parseInt(document.getElementById('srvInput').value) || 1);
-            if(code.length < 10) return;
+            if(code.length < 5) return;
 
-            // Step 1: Compute Units (Based on Loops & Structure)
-            const loops = (code.match(/for|while|map|foreach/gi) || []).length;
-            const computeUnits = (code.length / 100) + (loops * 8);
-
-            // Step 2: Cost Calculation (AWS C5 vs AWS T3 Micro)
-            // Worst: High-Compute Rate (~₹180/unit) | Opt: Eco-Compute Rate (~₹45/unit)
-            window.audit.worst = computeUnits * 180 * window.audit.srv;
-            window.audit.opt = computeUnits * 45 * window.audit.srv;
+            const complexity = (code.length * 0.08) + (code.split('{').length * 8);
+            window.audit.energy = (complexity * 0.02 * window.audit.srv).toFixed(2);
+            window.audit.worst = complexity * 180 * window.audit.srv; 
+            window.audit.opt = complexity * 45 * window.audit.srv;    
             window.audit.savings = window.audit.worst - window.audit.opt;
             window.audit.fee = (window.audit.savings * 0.35).toFixed(2);
-            window.audit.energy = (computeUnits * 0.025).toFixed(3);
             window.audit.original = code;
+            window.audit.optimized = `/* ECOSTACK CLOUD v4.7 */\n` + code.trim();
 
-            document.getElementById('ui_worst').innerText = "₹" + Math.floor(window.audit.worst).toLocaleString();
-            document.getElementById('ui_opt').innerText = "₹" + Math.floor(window.audit.opt).toLocaleString();
-            document.getElementById('ui_savings').innerText = "₹" + Math.floor(window.audit.savings).toLocaleString();
-            document.getElementById('ui_fee').innerText = "₹" + parseFloat(window.audit.fee).toLocaleString();
+            document.getElementById('st_worst').innerText = "₹" + Math.floor(window.audit.worst).toLocaleString();
+            document.getElementById('st_opt').innerText = "₹" + Math.floor(window.audit.opt).toLocaleString();
+            document.getElementById('st_diff').innerText = "₹" + Math.floor(window.audit.savings).toLocaleString();
+            document.getElementById('st_fee').innerText = "₹" + parseFloat(window.audit.fee).toLocaleString();
+            
+            // DYNAMIC QR GENERATION
+            const upi = `upi://pay?pa=sayyadsharrin0@okaxis&am=${window.audit.fee}&cu=INR&pn=ECOSTACK%20AI%20SERVICE`;
+            document.getElementById('qrBox').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(upi)}" class="bg-white p-2 rounded-xl border-4 border-emerald-500">`;
         };
 
+        // 2. WHATSAPP & FIREBASE SYNC
         window.requestApproval = function() {
-            if(!window.audit.original) return alert("Enter code.");
-            window.audit.id = "ESTK-" + Math.floor(Math.random() * 900000 + 100000);
+            if(!window.audit.original) return alert("Please enter code first.");
+            window.audit.id = "ESTK-" + Math.floor(100000 + Math.random() * 900000);
+            
             const reqRef = push(ref(db, 'history'));
-            update(reqRef, { ...window.audit, status: "PENDING", timestamp: serverTimestamp() });
+            const record = {
+                id: window.audit.id, status: "PENDING", original: window.audit.original, 
+                worst: window.audit.worst, opt: window.audit.opt, savings: window.audit.savings,
+                fee: window.audit.fee, srv: window.audit.srv, timestamp: serverTimestamp()
+            };
+            
+            update(reqRef, record);
 
-            onValue(reqRef, (s) => {
-                if(s.val()?.status === "APPROVED") {
-                    document.getElementById('lock').classList.add('hidden-element');
-                    document.getElementById('codeOut').value = "/* OPTIMIZED BY ECOSTACK AI */\n" + window.audit.original;
+            onValue(reqRef, (snap) => {
+                const s = snap.val()?.status;
+                if(s === "APPROVED") {
+                    document.getElementById('lockLayer').classList.add('hidden-element');
+                    document.getElementById('codeOut').value = "/* VERIFIED BY CEO */\n" + window.audit.original;
                     document.getElementById('dlArea').classList.remove('hidden-element');
                 }
             });
-            window.open(`https://wa.me/9096530829?text=*AUDIT ID: ${window.audit.id}*%0AFee: ₹${window.audit.fee}`);
+
+            const now = new Date();
+            const waMsg = `*ECOSTACK AI - AUDIT REQUEST*%0A--------------------------%0A*ID:* ${window.audit.id}%0A*DATE:* ${now.toLocaleDateString()}%0A*TIME:* ${now.toLocaleTimeString()}%0A--------------------------%0A*Worst Bill:* ₹${Math.floor(window.audit.worst)}%0A*Optimized:* ₹${Math.floor(window.audit.opt)}%0A*Net Savings:* ₹${Math.floor(window.audit.savings)}%0A--------------------------%0A*TOTAL CEO FEE: ₹${window.audit.fee}*%0A--------------------------%0A_Please verify and approve the handshake._`;
+            window.open(`https://wa.me/9096530829?text=${waMsg}`);
         };
+
+        // 3. ADMIN / CEO PANEL
+        window.ceoLogin = function() {
+            if(document.getElementById('ceoKey').value === "rubinaramjan@14") {
+                document.getElementById('userInterface').classList.add('hidden-element');
+                document.getElementById('adminTerminal').classList.remove('hidden-element');
+                syncAdmin();
+            }
+        };
+
+        function syncAdmin() {
+            onValue(ref(db, 'history'), (snap) => {
+                const container = document.getElementById('adminFeed'); container.innerHTML = "";
+                const data = snap.val();
+                if(data) Object.keys(data).reverse().forEach(key => {
+                    const r = data[key];
+                    container.innerHTML += `
+                    <div class="admin-card">
+                        <div class="stamp">${r.status}</div>
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold text-emerald-500">${r.id}</h3>
+                            <div class="flex gap-2">
+                                <button onclick="window.updateReq('${key}', 'APPROVED')" class="bg-emerald-600 px-4 py-1 rounded-lg text-[10px] font-bold">APPROVE</button>
+                                <button onclick="window.updateReq('${key}', 'REJECTED')" class="bg-red-600 px-4 py-1 rounded-lg text-[10px] font-bold">REJECT</button>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-4 gap-2 text-[10px] text-center">
+                            <div class="bg-white/5 p-2 rounded-xl">WORST: ₹${Math.floor(r.worst)}</div>
+                            <div class="bg-white/5 p-2 rounded-xl">OPT: ₹${Math.floor(r.opt)}</div>
+                            <div class="bg-white/5 p-2 rounded-xl">SAVE: ₹${Math.floor(r.savings)}</div>
+                            <div class="bg-emerald-500/20 p-2 rounded-xl border border-emerald-500/30 font-bold">FEE: ₹${r.fee}</div>
+                        </div>
+                    </div>`;
+                });
+            });
+        }
+        window.updateReq = (k, s) => update(ref(db, `history/${k}`), { status: s });
 
         window.generatePDF = function() {
             const doc = new window.jspdf.jsPDF();
-            doc.setFontSize(20); doc.text("ECOSTACK AI: CLOUD AUDIT", 20, 20);
-            doc.setFontSize(10); doc.text(`Audit ID: ${window.audit.id} | Benchmark: AWS Lambda`, 20, 30);
-            doc.text(`Legacy Bill (AWS C5): Rs. ${Math.floor(window.audit.worst)}`, 20, 50);
-            doc.text(`Optimized (AWS T3): Rs. ${Math.floor(window.audit.opt)}`, 20, 60);
-            doc.text(`Net Cloud Savings: Rs. ${Math.floor(window.audit.savings)}`, 20, 70);
-            doc.text(`Verified Service Fee: Rs. ${window.audit.fee}`, 20, 80);
+            doc.text("ECOSTACK AI OFFICIAL AUDIT", 20, 20);
+            doc.text(`ID: ${window.audit.id}`, 20, 30);
+            doc.text(`Total Savings: Rs. ${Math.floor(window.audit.savings)}`, 20, 40);
+            doc.text(`Fee Paid: Rs. ${window.audit.fee}`, 20, 50);
             doc.save(`Audit_${window.audit.id}.pdf`);
         };
 
-        document.addEventListener('DOMContentLoaded', () => { document.getElementById('codeIn').oninput = window.processAudit; });
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('codeIn').oninput = window.processAudit;
+            document.getElementById('srvInput').oninput = window.processAudit;
+        });
     </script>
 </head>
-<body class="p-6">
-    <div class="max-w-6xl mx-auto space-y-8">
-        <header class="glass p-8 rounded-[40px] flex justify-between items-center border-b-4 border-emerald-500">
-            <h1 class="text-4xl font-black italic text-emerald-500">ECOSTACK AI</h1>
-            <div class="flex gap-4">
-                <input type="number" id="srvInput" value="1" class="bg-black w-14 p-2 rounded-xl border border-white/10 text-emerald-500 font-bold">
-                <input type="password" oninput="if(this.value==='rubinaramjan@14') alert('Admin Terminal Ready')" placeholder="Admin" class="bg-white/5 border-none rounded-xl px-4 text-xs w-24">
+<body class="p-4 md:p-8">
+
+    <div id="adminTerminal" class="hidden-element max-w-4xl mx-auto">
+        <header class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-black uppercase text-emerald-500">CEO TERMINAL</h1>
+            <button onclick="location.reload()" class="text-xs opacity-50 uppercase">Logout</button>
+        </header>
+        <div id="adminFeed"></div>
+    </div>
+
+    <div id="userInterface" class="max-w-6xl mx-auto">
+        <header class="flex justify-between items-center glass p-8 rounded-[40px] mb-8">
+            <h1 class="text-3xl font-black italic text-emerald-500">ECOSTACK AI</h1>
+            <div class="flex gap-2">
+                <input type="number" id="srvInput" value="1" class="bg-black w-12 p-2 rounded-xl text-emerald-500 font-bold outline-none border border-white/10">
+                <input type="password" id="ceoKey" oninput="ceoLogin()" placeholder="ADMIN" class="bg-white/5 px-4 rounded-xl text-xs w-24 outline-none border border-white/5">
             </div>
         </header>
 
-        <div class="grid md:grid-cols-2 gap-6">
-            <textarea id="codeIn" class="h-64 bg-black p-6 rounded-[30px] border border-white/5 outline-none code-font" placeholder="Paste Source Code..."></textarea>
+        <div class="grid lg:grid-cols-2 gap-6 mb-8">
+            <textarea id="codeIn" class="w-full h-72 bg-black border border-white/5 p-6 rounded-[40px] outline-none code-font" placeholder="Paste Source Code..."></textarea>
             <div class="relative">
-                <div id="lock" class="absolute inset-0 glass flex items-center justify-center rounded-[30px] text-[10px] uppercase font-bold tracking-widest text-emerald-500">Awaiting Fee Approval</div>
-                <textarea id="codeOut" readonly class="h-64 bg-black/40 p-6 rounded-[30px] border border-white/5 outline-none code-font text-emerald-500/50"></textarea>
+                <div id="lockLayer" class="absolute inset-0 glass flex items-center justify-center rounded-[40px] text-[10px] font-bold tracking-widest text-emerald-500 uppercase">Handshake Pending</div>
+                <textarea id="codeOut" readonly class="w-full h-72 bg-black/50 border border-white/5 p-6 rounded-[40px] outline-none code-font text-emerald-500/30 italic"></textarea>
             </div>
         </div>
 
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div class="glass p-6 rounded-3xl text-center border-b-2 border-red-500"><p class="text-[8px] opacity-50 uppercase">AWS C5 Tier</p><p id="ui_worst" class="text-xl font-bold">₹0</p></div>
-            <div class="glass p-6 rounded-3xl text-center border-b-2 border-emerald-500"><p class="text-[8px] opacity-50 uppercase">AWS T3 Tier</p><p id="ui_opt" class="text-xl font-bold">₹0</p></div>
-            <div class="glass p-6 rounded-3xl text-center border-b-2 border-blue-500"><p class="text-[8px] opacity-50 uppercase">Savings</p><p id="ui_savings" class="text-xl font-bold">₹0</p></div>
-            <div class="bg-emerald-500/10 p-6 rounded-3xl text-center border border-emerald-500/30"><p class="text-[8px] text-emerald-400 font-bold uppercase">Audit Fee</p><p id="ui_fee" class="text-2xl font-black text-emerald-400">₹0</p></div>
-        </div>
+        <section class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <div class="glass p-5 rounded-3xl text-center border-b-2 border-red-500"><p class="text-[8px] opacity-50 uppercase mb-1">Worst Case</p><p id="st_worst" class="font-bold">₹0</p></div>
+            <div class="glass p-5 rounded-3xl text-center border-b-2 border-emerald-500"><p class="text-[8px] opacity-50 uppercase mb-1">Optimized</p><p id="st_opt" class="font-bold">₹0</p></div>
+            <div class="glass p-5 rounded-3xl text-center border-b-2 border-blue-500"><p class="text-[8px] opacity-50 uppercase mb-1">Savings</p><p id="st_diff" class="font-bold">₹0</p></div>
+            <div class="bg-emerald-500/10 p-5 rounded-3xl text-center border border-emerald-500/30"><p class="text-[8px] text-emerald-400 font-bold uppercase mb-1">CEO Fee</p><p id="st_fee" class="text-xl font-black text-emerald-400">₹0</p></div>
+        </section>
 
-        <footer class="glass p-8 rounded-[40px] flex flex-col md:flex-row gap-6 items-center">
-            <div id="qrBox" class="w-32 h-32 bg-white/5 rounded-2xl flex items-center justify-center text-[10px] opacity-20">QR READY</div>
-            <div class="flex-1 w-full space-y-3">
-                <button onclick="requestApproval()" class="btn-glow w-full py-6 rounded-3xl font-bold uppercase tracking-widest text-xs">Request CEO Approval</button>
+        <footer class="glass p-8 rounded-[40px] flex flex-col md:flex-row gap-8 items-center">
+            <div id="qrBox" class="flex-shrink-0">QR CODE</div>
+            <div class="w-full space-y-4">
+                <button onclick="requestApproval()" class="btn-emerald w-full py-8 rounded-[30px] font-black uppercase tracking-widest text-xs text-white">Notify CEO & Request Access</button>
                 <div id="dlArea" class="hidden-element">
-                    <button onclick="generatePDF()" class="w-full bg-white text-black py-3 rounded-2xl font-bold text-[10px] uppercase">Download Cloud Report</button>
+                    <button onclick="generatePDF()" class="w-full bg-white text-black py-4 rounded-2xl font-black text-[10px] uppercase">Download Cloud Audit Report</button>
                 </div>
             </div>
         </footer>

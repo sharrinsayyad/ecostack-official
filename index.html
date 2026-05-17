@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoStack AI - Control Console</title>
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <title>EcoStack AI - Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Core Image 1 Neon & Glow Specifications */
-        .glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.15); }
-        .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.15); }
-        .glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
+        /* Core Cyberpunk styles exactly matching your custom layouts */
+        .glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); }
+        .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+        .glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
         .scanner-line { animation: scanEffect 2s linear infinite; }
         @keyframes scanEffect {
             0% { top: 0%; }
@@ -26,7 +26,7 @@
     <header class="border-b border-slate-900 bg-[#030712]/90 sticky top-0 z-50 px-8 py-5 flex justify-between items-center">
         <div class="flex items-center space-x-2">
             <span class="text-2xl font-black tracking-widest text-emerald-400">ECOSTACK AI</span>
-            <span class="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">V1.2 LIVE</span>
+            <span class="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">V1.3 ENGINE</span>
         </div>
         <div class="flex items-center space-x-3">
             <input id="adminKeyField" type="password" placeholder="Enter Admin Key" class="bg-slate-950 border border-slate-900 text-xs text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-500/50 w-40">
@@ -47,7 +47,7 @@
 
                 <div>
                     <label class="block text-[11px] font-mono font-bold tracking-widest text-slate-400 uppercase mb-3">WORST CODE PASTE HERE</label>
-                    <textarea id="codeInput" rows="14" class="w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm text-rose-400/90 focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 resize-none" placeholder="// Paste unoptimized heavy arrays, loops or database execution query codes..."></textarea>
+                    <textarea id="codeInput" rows="14" class="w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm text-rose-400/90 focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 resize-none" placeholder="// Paste unoptimized arrays, loops or cloud computing scripts here..."></textarea>
                 </div>
 
                 <div class="space-y-3">
@@ -55,7 +55,7 @@
                         ⚡ RUN ECOSTACK DEEP OPTIMIZATION
                     </button>
                     <button id="notifyCeoBtn" class="w-full bg-gradient-to-r from-amber-950 to-orange-950 border border-amber-500/40 text-amber-300 font-mono text-xs tracking-widest uppercase py-4 rounded-xl transition-all shadow-md cursor-pointer hidden animate-pulse">
-                        📢 SCANNER VERIFIED: NOTIFY TO CEO & SYNC SYSTEM
+                        📢 SCANNER SUCCESS: NOTIFY TO CEO & SYNC DATA
                     </button>
                 </div>
             </div>
@@ -224,7 +224,7 @@
             uniqueRequestId: '', timestampString: '', worstCode: '', optimizedCode: '', approved: false
         };
 
-        // 1. Automatic Worst Cloud Bill Calculation Formula
+        // 1. Instant Worst Bill Cloud Weight Formula Integration
         document.getElementById('codeInput').addEventListener('input', (e) => {
             const code = e.target.value;
             localState.worstCode = code;
@@ -246,9 +246,9 @@
             document.getElementById('display-worst-bill').innerText = `₹${localState.worstBill}`;
         });
 
-        // 2. Fixed Core Optimization Execution Trigger Event Listener
-        document.getElementById('optimizeBtn').addEventListener('click', () => {
-            if(!localState.worstCode.trim()) {
+        // 2. Direct Explicit Deep Optimization Scanner Call
+        document.getElementById('optimizeBtn').addEventListener('click', function() {
+            if(!localState.worstCode || !localState.worstCode.trim()) {
                 alert("Please paste unoptimized loop frameworks inside the code entry window panel first.");
                 return;
             }
@@ -260,22 +260,23 @@
             mainBtn.innerText = "⚡ ECOSTACK ENGINE RUNNING DEEP SCAN...";
             mainBtn.disabled = true;
 
+            // Delayed interface configuration execution sequence
             setTimeout(() => {
                 overlay.classList.add('hidden');
                 mainBtn.innerText = "⚡ RUN ECOSTACK DEEP OPTIMIZATION";
                 mainBtn.disabled = false;
                 
-                // Instantly swap view onto the Notify Button triggers
+                // Directly switch visibility state mapping target nodes
                 const targetNotify = document.getElementById('notifyCeoBtn');
                 targetNotify.classList.remove('hidden');
                 
-                // Directly auto click execution sequence
-                targetNotify.click();
+                // Trigger actual backend sync execution pipeline right away
+                executeCeoNotificationWorkflow();
             }, 2000);
         });
 
-        // 3. Notify CEO Engine: Computes instantly and posts down updates onto layout metrics cards and Firebase rules logs
-        document.getElementById('notifyCeoBtn').addEventListener('click', async () => {
+        // 3. Isolated Core Notification Execution Routine (Solves click blockage)
+        async function executeCeoNotificationWorkflow() {
             localState.savings = Math.round(localState.worstBill * 0.45);
             localState.optimizedBill = Math.round(localState.worstBill - localState.savings);
             localState.ceoFee = Math.round(localState.savings * 0.35);
@@ -289,12 +290,12 @@
             const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
             localState.timestampString = `${d.toLocaleDateString()} (${days[d.getDay()]}) - ${d.toLocaleTimeString()}`;
 
-            // Instantly reveal metrics parameters directly inside frontend dashboard metrics
+            // Sync structural boxes views directly inside layout
             document.getElementById('display-optimized-bill').innerText = `₹${localState.optimizedBill}`;
             document.getElementById('display-savings').innerText = `₹${localState.savings}`;
             document.getElementById('display-ceo-fee').innerText = `₹${localState.ceoFee}`;
 
-            // Sync structural elements to Firebase
+            // Sync down calculations payload matrix properties onto state logs architecture
             await database.ref('dashboard_metrics').set({
                 worstBillDetected: localState.worstBill,
                 totalBillSavings: localState.savings,
@@ -306,7 +307,7 @@
                 statusApproved: false
             });
 
-            // Dispatch out direct secure data properties to WhatsApp Link endpoints
+            // Redirect channels downstream directly via native standard URL parameters triggers
             const secureText = encodeURIComponent(
                 `====== ECOSTACK AI REQUEST ======\n` +
                 `ID: ${localState.uniqueRequestId}\n` +
@@ -319,8 +320,7 @@
                 `Awaiting operational dashboard review credentials signature to process payload deployment execution.`
             );
             window.open(`https://api.whatsapp.com/send?phone=9096530829&text=${secureText}`, '_blank');
-        });
+        }
 
-        // 4. Verification Token Node Handler
-        document.getElementById('accessAdminBtn').addEventListener('click', () => {
-            const secret = document.getEle
+        // Secondary fallback trigger link if manual interaction is required
+        document.getElementById('notifyCeoB

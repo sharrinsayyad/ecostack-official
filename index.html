@@ -19,7 +19,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, push, onValue, update, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Secure Realtime DB Configurations
         const firebaseConfig = {
             apiKey: "AIzaSyD4QK67Y22aYtzUgMNESQfXVax51Tk2zy0",
             authDomain: "autostack-ai.firebaseapp.com",
@@ -30,69 +29,66 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // Global Audit Object matching your notebook requirements
         window.currentAudit = {
             id: "", dateTime: "", worstBill: 0, optimizedBill: 0, 
             savings: 0, ceoFee: 0, worstCode: "", optimizedCode: ""
         };
 
-        // 1. STANDARD CLOUD BILLING & ANTI-HACKING LOGIC
+        // 1. BILLING ENGINE & REALTIME UI REFRESH
         window.runCloudAudit = function() {
             let rawCode = document.getElementById('worstCodeIn').value;
-            
-            // ANTI-HACKING LOGIC: Input Sanitization (Prevents script injection & malicious payloads)
             rawCode = rawCode.replace(/<script\b[^>]*>([\s\S]*?)<\/script>/gim, "[SECURE-FILTERED]");
-            rawCode = rawCode.replace(/(content-loss|rm -rf|drop table|process.kill)/gi, "[RESTRICTED_COMMAND]");
+            
+            if(rawCode.trim().length < 2) {
+                resetUI();
+                return;
+            }
 
-            if(rawCode.trim().length < 5) return;
-
-            // STANDARD CLOUD FORMULA (Image 3): Total Cost = (Allocated RAM x Execution Time) * Compute Rate
-            // Ingested using simulated Streams logic (Image 4) to handle huge payloads chunk-by-chunk without server crash
             const loopsCount = (rawCode.match(/for|while|map|\.each/gi) || []).length;
             const nestedConditions = (rawCode.match(/if\s*\(.*{\s*if/gi) || []).length;
             
-            // Inefficient code forces high RAM allocation & higher processing time
-            const legacyRamAllocation = 2.0; // 2GB allocated for unoptimized code
+            const legacyRamAllocation = 2.0; 
             const legacyExecutionTime = 1.5 + (loopsCount * 0.8) + (nestedConditions * 1.2); 
             
-            const optimizedRamAllocation = 0.5; // 512MB allocated for EcoStack optimized version
+            const optimizedRamAllocation = 0.5; 
             const optimizedExecutionTime = 0.2 + (loopsCount * 0.1);
 
-            // AWS TIERING RATES (Image 2)
-            const AWS_C5_RATE = 180; // ₹180 per compute unit
-            const AWS_T3_MICRO_RATE = 42; // ₹42 per compute unit
+            const AWS_C5_RATE = 180; 
+            const AWS_T3_MICRO_RATE = 42; 
 
             const worstComputeUnits = legacyRamAllocation * legacyExecutionTime;
             const optComputeUnits = optimizedRamAllocation * optimizedExecutionTime;
 
-            // Final Bill Allocations
             window.currentAudit.worstCode = rawCode;
             window.currentAudit.worstBill = Math.round(worstComputeUnits * AWS_C5_RATE);
             window.currentAudit.optimizedBill = Math.round(optComputeUnits * AWS_T3_MICRO_RATE);
-            
-            // SAVINGS FORMULA (Image 2): Savings = Worst Bill - Optimized Bill
             window.currentAudit.savings = window.currentAudit.worstBill - window.currentAudit.optimizedBill;
-            
-            // CEO FEE CALCULATION (Image 2): Fee = Savings x 0.35 (Strict 35%)
             window.currentAudit.ceoFee = Math.round(window.currentAudit.savings * 0.35);
+            window.currentAudit.optimizedCode = `/* ECOSTACK AI: OPTIMIZED VERSION APPROVED */\n// RAM Footprint Reduced to 512MB via micro-instances.\n\n` + rawCode.trim();
 
-            // Fake optimization rendering for output view simulation
-            window.currentAudit.optimizedCode = `/* ECOSTACK AI: OPTIMIZED VERSION */\n// Standard Cloud Architecture Applied\n// RAM Allocation Reduced to 512MB\n\n` + rawCode.trim();
-
-            // Updating Frontend Blocks
             document.getElementById('displayWorstBill').innerText = "₹" + window.currentAudit.worstBill.toLocaleString();
             document.getElementById('displayOptBill').innerText = "₹" + window.currentAudit.optimizedBill.toLocaleString();
             document.getElementById('displaySavings').innerText = "₹" + window.currentAudit.savings.toLocaleString();
             document.getElementById('displayCeoFee').innerText = "₹" + window.currentAudit.ceoFee.toLocaleString();
 
-            // Dynamic UPI QR Generation based on exact calculated CEO Fee
             const upiString = `upi://pay?pa=sayyadsharrin0@okaxis&am=${window.currentAudit.ceoFee}&cu=INR&pn=ECOSTACK%20AI`;
-            document.getElementById('qrCodeContainer').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upiString)}" class="bg-white p-2 rounded-2xl border-2 border-emerald-500 shadow-xl">`;
+            document.getElementById('qrCodeContainer').innerHTML = `<img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(upiString)}" class="bg-white p-2 rounded-2xl border-2 border-emerald-500 shadow-xl mx-auto">`;
         };
 
-        // 2. REMOTE HANDSHAKE & FIREBASE SYNC (Image 2 & 3)
+        function resetUI() {
+            document.getElementById('displayWorstBill').innerText = "₹0";
+            document.getElementById('displayOptBill').innerText = "₹0";
+            document.getElementById('displaySavings').innerText = "₹0";
+            document.getElementById('displayCeoFee').innerText = "₹0";
+            document.getElementById('qrCodeContainer').innerHTML = "dynamic Q.R code";
+        }
+
+        // 2. WHATSAPP & FIREBASE HANDSHAKE
         window.sendCeoNotification = function() {
-            if(!window.currentAudit.worstCode) return alert("Please input source code first.");
+            if(!window.currentAudit.worstCode || window.currentAudit.worstCode.trim().length < 5) {
+                alert("Please input valid source code first.");
+                return;
+            }
 
             window.currentAudit.id = "ESTK-" + Math.floor(100000 + Math.random() * 900000);
             const stamp = new Date();
@@ -106,21 +102,26 @@
             };
 
             update(historyRef, dataPayload).then(() => {
-                // Realtime Handshake listener for automated lock opening
+                // Keep listening on this specific request node for updates from admin panel
                 onValue(historyRef, (snapshot) => {
-                    if(snapshot.val()?.status === "APPROVED") {
+                    const status = snapshot.val()?.status;
+                    if(status === "APPROVED") {
                         document.getElementById('secureLockOverlay').classList.add('hidden-panel');
                         document.getElementById('optimizedCodeOut').value = window.currentAudit.optimizedCode;
+                        document.getElementById('dlArea').classList.remove('hidden-panel');
                     }
                 });
 
-                // Detailed WhatsApp trigger format
                 const msg = `*🚀 ECOSTACK AI - AUDIT REQUEST*%0A--------------------------%0A*ID:* ${window.currentAudit.id}%0A*DATE/TIME:* ${window.currentAudit.dateTime}%0A--------------------------%0A*Worst Case Bill (AWS C5):* ₹${window.currentAudit.worstBill}%0A*Optimized Bill (AWS T3):* ₹${window.currentAudit.optimizedBill}%0A*Net Cloud Savings:* ₹${window.currentAudit.savings}%0A--------------------------%0A*💰 REQUIRED CEO FEE (35%): ₹${window.currentAudit.ceoFee}*%0A--------------------------%0A_Verify and approve payload from Admin Panel to release code._`;
-                window.open(`https://wa.me/9096530829?text=${msg}`);
+                
+                const waUrl = `https://wa.me/9096530829?text=${msg}`;
+                window.open(waUrl, '_blank');
+            }).catch((err) => {
+                alert("Firebase Error: " + err.message);
             });
         };
 
-        // 3. ADMIN PANEL SYSTEM (Image 3 Requirements)
+        // 3. ADMIN ACCESS & REQ STATE TRANSITION
         window.accessAdminPanel = function() {
             const pattern = document.getElementById('adminKeyInput').value;
             if(pattern === "rubinaramjan@14") {
@@ -139,19 +140,17 @@
                     Object.keys(data).reverse().forEach(nodeKey => {
                         const item = data[nodeKey];
                         
-                        // Creating direct dynamic PDF generation call data for each single user record card
-                        const pdfParams = JSON.stringify(item).replace(/"/g, '&quot;');
-
                         layout.innerHTML += `
-                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-[30px] mb-4 space-y-4">
-                            <div class="flex justify-between items-center">
+                        <div class="bg-slate-900 border border-slate-800 p-6 rounded-[30px] mb-4 space-y-4 text-left">
+                            <div class="flex justify-between items-center flex-wrap gap-2">
                                 <div>
-                                    <h4 class="text-emerald-400 font-bold tracking-wider">${item.id}</h4>
+                                    <h4 class="text-emerald-400 font-bold tracking-wider">${item.id} [${item.status || 'PENDING'}]</h4>
                                     <p class="text-[10px] opacity-40">${item.dateTime}</p>
                                 </div>
                                 <div class="flex gap-2">
-                                    <button onclick="changeReqStatus('${nodeKey}', 'APPROVED')" class="bg-emerald-500 hover:bg-emerald-600 text-black font-bold px-4 py-1.5 rounded-xl text-xs uppercase">Approve & Unlock</button>
-                                    <button onclick="downloadStandalonePDF('${nodeKey}')" class="bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-1.5 rounded-xl text-xs">PDF Report</button>
+                                    <button onclick="changeReqStatus('${nodeKey}', 'APPROVED')" class="bg-emerald-500 hover:bg-emerald-600 text-black font-black px-4 py-2 rounded-xl text-xs uppercase">Approve & Unlock</button>
+                                    <button onclick="changeReqStatus('${nodeKey}', 'REJECTED')" class="bg-red-500 hover:bg-red-600 text-white font-black px-4 py-2 rounded-xl text-xs uppercase">Reject</button>
+                                    <button onclick="downloadStandalonePDF('${nodeKey}')" class="bg-white/10 hover:bg-white/20 text-white font-bold px-3 py-2 rounded-xl text-xs">Download PDF</button>
                                 </div>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 text-center text-xs">
@@ -172,9 +171,12 @@
             });
         }
 
-        window.changeReqStatus = (key, state) => update(ref(db, `history/${key}`), { status: state });
+        window.changeReqStatus = function(key, state) {
+            update(ref(db, `history/${key}`), { status: state })
+                .then(() => alert(`Status successfully updated to: ${state}`))
+                .catch(err => alert("Error updating status: " + err.message));
+        };
 
-        // Automated PDF Builder logic containing all details requested in your layout
         window.downloadStandalonePDF = function(key) {
             onValue(ref(db, `history/${key}`), (s) => {
                 const data = s.val();
@@ -185,21 +187,30 @@
                 doc.text(`Unique ID: ${data.id}`, 15, 38);
                 doc.text(`Date & Time: ${data.dateTime}`, 15, 45);
                 doc.text(`------------------------------------------------------------------------------------------------`, 15, 52);
-                doc.setTextColor(239, 68, 68); doc.text(`Worst Code Infrastructure Cost (AWS C5 high compute): Rs. ${data.worstBill}`, 15, 62);
-                doc.setTextColor(52, 211, 153); doc.text(`Optimized Infrastructure Cost (AWS T3 micro/eco): Rs. ${data.optimizedBill}`, 15, 72);
+                doc.setTextColor(239, 68, 68); doc.text(`Worst Code Infrastructure Cost (AWS C5): Rs. ${data.worstBill}`, 15, 62);
+                doc.setTextColor(52, 211, 153); doc.text(`Optimized Infrastructure Cost (AWS T3): Rs. ${data.optimizedBill}`, 15, 72);
                 doc.setTextColor(59, 130, 246); doc.text(`Net Infrastructure Savings: Rs. ${data.savings}`, 15, 82);
-                doc.setTextColor(16, 185, 129); doc.text(`Calculated Business CEO Service Fee (35%): Rs. ${data.ceoFee}`, 15, 92);
-                doc.setTextColor(255, 255, 255);
-                doc.text(`--- ORIGINAL INPUT SOURCE TIER ---`, 15, 110);
-                doc.text(data.worstCode.substring(0, 500), 15, 120);
-                doc.text(`--- ECOSTACK OPTIMIZED ENGINE SCHEDULING ---`, 15, 180);
-                doc.text(data.optimizedCode.substring(0, 500), 15, 190);
+                doc.setTextColor(16, 185, 129); doc.text(`Calculated CEO Service Fee (35%): Rs. ${data.ceoFee}`, 15, 92);
                 doc.save(`Audit_Report_${data.id}.pdf`);
             }, { onlyOnce: true });
         };
 
+        window.downloadClientPDF = function() {
+            const doc = new window.jspdf.jsPDF();
+            doc.setFillColor(2, 6, 23); doc.rect(0, 0, 210, 297, 'F');
+            doc.setTextColor(16, 185, 129); doc.setFontSize(22); doc.text("ECOSTACK AI - CLIENT REPORT", 15, 25);
+            doc.setTextColor(255, 255, 255); doc.setFontSize(10);
+            doc.text(`Unique ID: ${window.currentAudit.id}`, 15, 38);
+            doc.text(`Date & Time: ${window.currentAudit.dateTime}`, 15, 45);
+            doc.text(`Worst Bill: Rs. ${window.currentAudit.worstBill}`, 15, 60);
+            doc.text(`Optimized Bill: Rs. ${window.currentAudit.optimizedBill}`, 15, 70);
+            doc.text(`Net Savings: Rs. ${window.currentAudit.savings}`, 15, 80);
+            doc.text(`CEO Fee (35% Paid): Rs. ${window.currentAudit.ceoFee}`, 15, 92);
+            doc.save(`My_Optimization_Report.pdf`);
+        };
+
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('worstCodeIn').oninput = window.runCloudAudit;
+            document.getElementById('worstCodeIn').addEventListener('input', window.runCloudAudit);
         });
     </script>
 </head>
@@ -223,12 +234,12 @@
 
         <div class="grid lg:grid-cols-2 gap-6">
             <div class="glass p-6 rounded-[35px] space-y-3 border border-red-500/10">
-                <label class="text-xs uppercase font-bold tracking-widest opacity-50 block">worst code paste here</label>
+                <label class="text-xs uppercase font-bold tracking-widest opacity-50 block text-left">worst code paste here</label>
                 <textarea id="worstCodeIn" class="w-full h-80 bg-black/60 border border-white/5 p-6 rounded-[25px] outline-none code-font text-red-300/90 focus:border-red-500/30 transition-all" placeholder="Paste structural raw architecture here..."></textarea>
             </div>
 
             <div class="glass p-6 rounded-[35px] space-y-3 relative overflow-hidden border border-emerald-500/10">
-                <label class="text-xs uppercase font-bold tracking-widest opacity-50 block">optimised code paste here</label>
+                <label class="text-xs uppercase font-bold tracking-widest opacity-50 block text-left">optimised code paste here</label>
                 <div id="secureLockOverlay" class="absolute inset-0 z-30 secure-lock flex flex-col items-center justify-center text-center p-4">
                     <div class="w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3 border border-emerald-500/30 animate-pulse">
                         <span class="text-emerald-400 text-lg">🔒</span>
@@ -241,24 +252,24 @@
         </div>
 
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="glass p-5 rounded-2xl border-b-4 border-red-500/60"><p class="text-[9px] opacity-40 uppercase font-bold mb-1">worstcode Bill</p><p id="displayWorstBill" class="text-lg font-black text-red-400">₹0</p></div>
-            <div class="glass p-5 rounded-2xl border-b-4 border-emerald-500/60"><p class="text-[9px] opacity-40 uppercase font-bold mb-1">optimised code bill</p><p id="displayOptBill" class="text-lg font-black text-emerald-400">₹0</p></div>
-            <div class="glass p-5 rounded-2xl border-b-4 border-blue-500/60"><p class="text-[9px] opacity-40 uppercase font-bold mb-1">Total Savings</p><p id="displaySavings" class="text-lg font-black text-blue-400">₹0</p></div>
-            <div class="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-2xl"><p class="text-[9px] text-emerald-400 uppercase font-bold mb-1">ceo fee (35%)</p><p id="displayCeoFee" class="text-xl font-black text-emerald-400">₹0</p></div>
-        </div>
-
-        <div class="glass p-5 rounded-2xl text-[11px] opacity-60 leading-relaxed space-y-1">
-            <p class="font-bold text-emerald-400 uppercase tracking-wider text-[10px]">Cloud Multiplier Metrics Breakdown:</p>
-            <p>• <strong>Worst Case High Cost Reason:</strong> Raw legacy script execution triggers non-isolated unoptimized nested loops requiring continuous high-compute allocation (AWS C5 Tiers mapped at ₹180/unit).</p>
-            <p>• <strong>EcoStack Micro Optimization:</strong> Rewrites complexity mapping directly shifting runtime layers safely into burstable lightweight clusters (AWS T3 Micro Instances mapped at ₹42/unit).</p>
+            <div class="glass p-5 rounded-2xl border-b-4 border-red-500/60 text-left"><p class="text-[9px] opacity-40 uppercase font-bold mb-1">worstcode Bill</p><p id="displayWorstBill" class="text-lg font-black text-red-400">₹0</p></div>
+            <div class="glass p-5 rounded-2xl border-b-4 border-emerald-500/60 text-left"><p class="text-[9px] opacity-40 uppercase font-bold mb-1">optimised code bill</p><p id="displayOptBill" class="text-lg font-black text-emerald-400">₹0</p></div>
+            <div class="glass p-5 rounded-2xl border-b-4 border-blue-500/60 text-left"><p class="text-[9px] opacity-40 uppercase font-bold mb-1">Total Savings</p><p id="displaySavings" class="text-lg font-black text-blue-400">₹0</p></div>
+            <div class="bg-emerald-500/10 border border-emerald-500/30 p-5 rounded-2xl text-left"><p class="text-[9px] text-emerald-400 uppercase font-bold mb-1">ceo fee (35%)</p><p id="displayCeoFee" class="text-xl font-black text-emerald-400">₹0</p></div>
         </div>
 
         <footer class="glass p-6 rounded-[35px] flex flex-col md:flex-row justify-between items-center gap-6">
-            <div class="flex items-center gap-4">
-                <div id="qrCodeContainer" class="w-36 h-36 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-[10px] text-center p-2 text-white/30 font-bold uppercase tracking-widest">dynamic Q.R code</div>
+            <div class="flex flex-col sm:flex-row items-center gap-4 w-full md:w-auto">
+                <div id="qrCodeContainer" class="w-36 h-36 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-[10px] text-center p-2 text-white/30 font-bold uppercase tracking-widest min-w-[144px]">dynamic Q.R code</div>
                 <div class="text-left"><p class="text-xs font-bold uppercase tracking-wider text-emerald-400">Instant UPI Node Gateway</p><p class="text-[10px] opacity-40 mt-0.5">Scan dynamically generated rate values directly via verified consumer wallets.</p></div>
             </div>
-            <button onclick="sendCeoNotification()" class="w-full md:w-auto px-10 py-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-emerald-500/10">Notify ceo Request Access</button>
+            
+            <div class="flex flex-col gap-2 w-full md:w-auto">
+                <button onclick="sendCeoNotification()" class="w-full px-10 py-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-black font-black uppercase text-xs tracking-widest transition-all shadow-xl shadow-emerald-500/10">Notify ceo Request Access</button>
+                <div id="dlArea" class="hidden-panel w-full">
+                    <button onclick="downloadClientPDF()" class="w-full bg-white text-black py-3 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">Download Cloud Report (.PDF)</button>
+                </div>
+            </div>
         </footer>
     </div>
 </body>

@@ -3,19 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoStack AI - Enterprise Console</title>
+    <title>EcoStack AI - Control Console</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        .neon-glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); }
-        .neon-glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
-        .neon-glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
-        .scanner-bar {
-            animation: scan 2s linear infinite;
-        }
-        @keyframes scan {
+        /* Core Image 1 Neon & Glow Specifications */
+        .glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.15); }
+        .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.15); }
+        .glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.15); }
+        .scanner-line { animation: scanEffect 2s linear infinite; }
+        @keyframes scanEffect {
             0% { top: 0%; }
             50% { top: 100%; }
             100% { top: 0%; }
@@ -24,38 +23,37 @@
 </head>
 <body class="bg-[#030712] text-slate-100 font-sans min-h-screen selection:bg-emerald-500 selection:text-slate-950">
 
-    <header class="border-b border-slate-900 bg-[#030712]/90 sticky top-0 z-50 px-8 py-4 flex justify-between items-center">
+    <header class="border-b border-slate-900 bg-[#030712]/90 sticky top-0 z-50 px-8 py-5 flex justify-between items-center">
         <div class="flex items-center space-x-2">
             <span class="text-2xl font-black tracking-widest text-emerald-400">ECOSTACK AI</span>
             <span class="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">V1.2 LIVE</span>
         </div>
         <div class="flex items-center space-x-3">
-            <input id="adminKeyField" type="password" placeholder="Enter Admin Terminal Key" class="bg-slate-950 border border-slate-900 text-xs text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-500/50 w-44">
-            <button id="accessAdminBtn" class="bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 px-4 py-1.5 rounded-lg hover:text-cyan-400 hover:border-cyan-500/30 transition-all">
+            <input id="adminKeyField" type="password" placeholder="Enter Admin Key" class="bg-slate-950 border border-slate-900 text-xs text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-500/50 w-40">
+            <button id="accessAdminBtn" class="bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 px-4 py-1.5 rounded-lg hover:text-cyan-400 transition-all">
                 Verify Terminal
             </button>
         </div>
     </header>
 
-    <main class="max-w-7xl mx-auto px-6 py-6 space-y-6">
+    <main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
         
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
             
             <div class="lg:col-span-7 bg-slate-900/20 border border-slate-900/60 p-6 rounded-2xl flex flex-col justify-between space-y-4 relative overflow-hidden">
                 <div id="scannerOverlay" class="absolute inset-0 bg-emerald-500/5 hidden pointer-events-none">
-                    <div class="absolute left-0 right-0 h-1 bg-emerald-400 scanner-bar shadow-[0_0_10px_#10b981]"></div>
+                    <div class="absolute left-0 right-0 h-0.5 bg-emerald-400 scanner-line shadow-[0_0_10px_#10b981]"></div>
                 </div>
 
                 <div>
                     <label class="block text-[11px] font-mono font-bold tracking-widest text-slate-400 uppercase mb-3">WORST CODE PASTE HERE</label>
-                    <textarea id="codeInput" rows="13" class="w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm text-rose-400 focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 resize-none" placeholder="// Paste unoptimized heavy arrays, loops or database execution query codes..."></textarea>
+                    <textarea id="codeInput" rows="14" class="w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm text-rose-400/90 focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 resize-none" placeholder="// Paste unoptimized heavy arrays, loops or database execution query codes..."></textarea>
                 </div>
 
                 <div class="space-y-3">
-                    <button id="optimizeBtn" class="w-full bg-slate-950 border border-emerald-500/20 hover:border-emerald-500 text-emerald-400 font-mono text-xs tracking-widest uppercase py-4 rounded-xl transition-all shadow-md cursor-pointer">
+                    <button id="optimizeBtn" class="w-full bg-slate-950 border border-emerald-500/20 hover:border-emerald-500/60 text-emerald-400 font-mono text-xs tracking-widest uppercase py-4 rounded-xl transition-all shadow-md cursor-pointer block">
                         ⚡ RUN ECOSTACK DEEP OPTIMIZATION
                     </button>
-
                     <button id="notifyCeoBtn" class="w-full bg-gradient-to-r from-amber-950 to-orange-950 border border-amber-500/40 text-amber-300 font-mono text-xs tracking-widest uppercase py-4 rounded-xl transition-all shadow-md cursor-pointer hidden animate-pulse">
                         📢 SCANNER VERIFIED: NOTIFY TO CEO & SYNC SYSTEM
                     </button>
@@ -64,20 +62,20 @@
 
             <div class="lg:col-span-5 flex flex-col space-y-4">
                 
-                <div id="userPanel" class="bg-slate-900/20 border border-slate-900/60 p-6 rounded-2xl flex flex-col justify-between min-h-[220px]">
-                    <div id="handshakeLayer" class="flex flex-col items-center justify-center text-center space-y-3 py-12">
-                        <div class="text-amber-500/80 text-3xl">🔒</div>
+                <div id="userPanel" class="bg-slate-900/20 border border-slate-900/60 p-6 rounded-2xl flex flex-col justify-between min-h-[240px]">
+                    <div id="handshakeLayer" class="flex flex-col items-center justify-center text-center space-y-4 py-16">
+                        <div class="text-amber-500/70 text-2xl animate-pulse">🔒</div>
                         <h3 class="text-[11px] font-mono font-bold tracking-widest text-slate-400 uppercase">OPTIMIZED LAYER HANDSHAKE RESTRICTED</h3>
-                        <p class="text-slate-600 text-[10px] font-mono max-w-xs leading-relaxed">Awaiting master dashboard verification and CEO deployment signature clear.</p>
+                        <p class="text-slate-600 text-[11px] font-mono max-w-xs leading-relaxed">Awaiting verified service billing approval trigger clearance from the master dashboard.</p>
                     </div>
 
                     <div id="reportLayer" class="hidden space-y-4">
                         <div class="flex justify-between items-center border-b border-slate-900 pb-2">
                             <h3 class="text-[11px] font-mono font-bold tracking-widest text-emerald-400 uppercase">✨ LAYER UNLOCKED SUCCESS</h3>
-                            <span id="userUniqueIdTag" class="text-[9px] font-mono text-cyan-400">ID: --</span>
+                            <span id="userUniqueIdTag" class="text-[9px] font-mono text-cyan-400 font-bold">ID: --</span>
                         </div>
                         <div class="bg-slate-950 p-4 rounded-xl border border-slate-900 max-h-56 overflow-y-auto">
-                            <pre id="codeOutput" class="text-xs font-mono text-emerald-300 whitespace-pre-wrap">// Optimized cloud code layer payload will process inside this panel wrapper...</pre>
+                            <pre id="codeOutput" class="text-xs font-mono text-emerald-300 whitespace-pre-wrap"></pre>
                         </div>
                         <button id="userDownloadBtn" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-mono py-3 rounded-xl transition-all uppercase tracking-wider">
                             📥 Download Official EcoStack PDF Report
@@ -85,41 +83,41 @@
                     </div>
                 </div>
 
-                <div id="adminPanel" class="bg-slate-950 border border-cyan-900/40 p-6 rounded-2xl space-y-4 opacity-40 pointer-events-none transition-all">
+                <div id="adminPanel" class="bg-slate-950 border border-cyan-900/30 p-6 rounded-2xl space-y-4 opacity-40 pointer-events-none transition-all">
                     <div class="flex justify-between items-center border-b border-cyan-950 pb-2">
                         <h4 class="text-xs font-mono font-bold tracking-wider text-cyan-400">🛡️ MASTER ADMIN MONITOR CONTROL</h4>
                         <span class="text-[9px] font-mono bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded">RESTRICTED</span>
                     </div>
                     
-                    <div class="text-xs font-mono space-y-2 text-slate-400">
+                    <div class="text-[11px] font-mono space-y-1.5 text-slate-400">
                         <p>⏱️ <span class="text-slate-500">Timestamp:</span> <span id="adminTime">Awaiting Request...</span></p>
-                        <p>🔑 <span class="text-slate-500">Secure Unique ID:</span> <span id="adminUniqueId" class="text-cyan-400 font-bold">None</span></p>
+                        <p>🔑 <span class="text-slate-500">Unique Req ID:</span> <span id="adminUniqueId" class="text-cyan-400 font-bold">None</span></p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-2 text-[11px] font-mono pt-1">
+                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1">
                         <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500">WORST</div>
+                            <div class="text-slate-500 uppercase">Worst</div>
                             <div id="adm-w" class="text-rose-400 font-bold">₹0</div>
                         </div>
                         <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500">OPTIMIZED</div>
+                            <div class="text-slate-500 uppercase">Optimized</div>
                             <div id="adm-o" class="text-emerald-400 font-bold">₹0</div>
                         </div>
                         <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500">SAVINGS</div>
+                            <div class="text-slate-500 uppercase">Savings</div>
                             <div id="adm-s" class="text-cyan-400 font-bold">₹0</div>
                         </div>
                         <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500">CEO FEE</div>
+                            <div class="text-slate-500 uppercase">CEO Fee</div>
                             <div id="adm-c" class="text-amber-400 font-bold">₹0</div>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2 pt-2">
-                        <button id="adminApproveBtn" class="bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-mono py-2.5 rounded-lg hover:bg-emerald-900 transition-all uppercase">
+                        <button id="adminApproveBtn" class="bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-mono py-2 rounded-lg hover:bg-emerald-900 transition-all uppercase">
                             ✓ Approve
                         </button>
-                        <button id="adminDownloadBtn" class="bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono py-2.5 rounded-lg hover:bg-slate-800 transition-all uppercase">
+                        <button id="adminDownloadBtn" class="bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono py-2 rounded-lg hover:bg-slate-800 transition-all uppercase">
                             📥 Report
                         </button>
                     </div>
@@ -129,7 +127,7 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl neon-glow-rose">
+            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl glow-rose">
                 <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase">WORST CODE BILL</span>
                 <div id="display-worst-bill" class="text-2xl font-black text-rose-500 mt-1">₹0</div>
             </div>
@@ -144,7 +142,7 @@
                 <div id="display-savings" class="text-2xl font-black text-cyan-400 mt-1">₹0</div>
             </div>
 
-            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl neon-glow-cyan">
+            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl glow-cyan">
                 <span class="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">CEO FEE (35%)</span>
                 <div id="display-ceo-fee" class="text-2xl font-black text-cyan-400 mt-1">₹0</div>
             </div>
@@ -212,32 +210,26 @@
                 <pre id="pdfOptimizedCodeDump" class="bg-emerald-50 text-emerald-800 p-3 rounded-lg text-[10px] font-mono border border-emerald-200 overflow-x-auto whitespace-pre-wrap max-h-48"></pre>
             </div>
         </div>
-
-        <div class="border-t border-slate-200 pt-4 text-center text-[10px] text-slate-400 font-mono">
-            Secure Cryptographic Request Clearance Log. Internal System Core Confidentiality Ensured.
-        </div>
     </div>
 
     <script>
         const GEMINI_API_KEY = "AIzaSyCKAinwiLoTq3pyyblmXHye3_kK9f5Is5E";
-        const firebaseConfig = {
-            databaseURL: "https://autostack-ai-c929b-default-rtdb.firebaseio.com/"
-        };
+        const firebaseConfig = { databaseURL: "https://autostack-ai-c929b-default-rtdb.firebaseio.com/" };
+        
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        // Local State Management Memory Variables
         let localState = {
             worstBill: 0, optimizedBill: 0, savings: 0, ceoFee: 0,
             uniqueRequestId: '', timestampString: '', worstCode: '', optimizedCode: '', approved: false
         };
 
-        // 1. Automatic Worst Code Cloud Formula Computation (No Changes to this calculation)
+        // 1. Automatic Worst Cloud Bill Calculation Formula
         document.getElementById('codeInput').addEventListener('input', (e) => {
             const code = e.target.value;
             localState.worstCode = code;
             if(!code.trim()) {
-                clearMetrics();
+                document.getElementById('display-worst-bill').innerText = '₹0';
                 return;
             }
             let baseCost = 40;
@@ -251,66 +243,58 @@
             if (estimated < 50) estimated = 50;
 
             localState.worstBill = Math.round(estimated);
-            
-            // Auto Update Main Layout Metrics Box
             document.getElementById('display-worst-bill').innerText = `₹${localState.worstBill}`;
         });
 
-        // 2. Run Optimization Button Event Listener (Includes Dynamic Scanning Interface simulation)
+        // 2. Fixed Core Optimization Execution Trigger Event Listener
         document.getElementById('optimizeBtn').addEventListener('click', () => {
             if(!localState.worstCode.trim()) {
-                alert("Please paste data payload structural loops inside the entry script module box first.");
+                alert("Please paste unoptimized loop frameworks inside the code entry window panel first.");
                 return;
             }
             
-            const scanner = document.getElementById('scannerOverlay');
-            const optBtn = document.getElementById('optimizeBtn');
+            const overlay = document.getElementById('scannerOverlay');
+            const mainBtn = document.getElementById('optimizeBtn');
             
-            scanner.classList.remove('hidden');
-            optBtn.innerText = "⚡ ENGINE RUNNING INFRASTRUCTURE SCAN...";
-            optBtn.disabled = true;
+            overlay.classList.remove('hidden');
+            mainBtn.innerText = "⚡ ECOSTACK ENGINE RUNNING DEEP SCAN...";
+            mainBtn.disabled = true;
 
             setTimeout(() => {
-                scanner.classList.add('hidden');
-                optBtn.innerText = "⚡ RUN ECOSTACK DEEP OPTIMIZATION";
-                optBtn.disabled = false;
+                overlay.classList.add('hidden');
+                mainBtn.innerText = "⚡ RUN ECOSTACK DEEP OPTIMIZATION";
+                mainBtn.disabled = false;
                 
-                // Expose the targeted Notify to CEO Option panel element automatically
-                const notifyBtn = document.getElementById('notifyCeoBtn');
-                notifyBtn.classList.remove('hidden');
+                // Instantly swap view onto the Notify Button triggers
+                const targetNotify = document.getElementById('notifyCeoBtn');
+                targetNotify.classList.remove('hidden');
                 
-                // Directly auto trigger clicks internally for synchronous automation processing
-                notifyBtn.click();
+                // Directly auto click execution sequence
+                targetNotify.click();
             }, 2000);
         });
 
-        // 3. Notify to CEO Action Trigger: Computes financial sheets, generates secure ID and updates live Firebase Realtime tree logs
+        // 3. Notify CEO Engine: Computes instantly and posts down updates onto layout metrics cards and Firebase rules logs
         document.getElementById('notifyCeoBtn').addEventListener('click', async () => {
-            // Compute operational equations formulas
             localState.savings = Math.round(localState.worstBill * 0.45);
             localState.optimizedBill = Math.round(localState.worstBill - localState.savings);
             localState.ceoFee = Math.round(localState.savings * 0.35);
 
-            // Generate Secure Unique Request ID
-            const generateSecureId = () => {
-                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-                let segment = '';
-                for (let i = 0; i < 8; i++) segment += chars.charAt(Math.floor(Math.random() * chars.length));
-                return `ESTK-${segment}-SECURE`;
-            };
-            localState.uniqueRequestId = generateSecureId();
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let seg = '';
+            for (let i = 0; i < 8; i++) seg += chars.charAt(Math.floor(Math.random() * chars.length));
+            localState.uniqueRequestId = `ESTK-${seg}-SECURE`;
 
-            // Set up local time indicators parameters
             const d = new Date();
             const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
             localState.timestampString = `${d.toLocaleDateString()} (${days[d.getDay()]}) - ${d.toLocaleTimeString()}`;
 
-            // Reveal and update metrics numbers immediately onto layout elements
+            // Instantly reveal metrics parameters directly inside frontend dashboard metrics
             document.getElementById('display-optimized-bill').innerText = `₹${localState.optimizedBill}`;
             document.getElementById('display-savings').innerText = `₹${localState.savings}`;
             document.getElementById('display-ceo-fee').innerText = `₹${localState.ceoFee}`;
 
-            // Sync down calculations payload matrix properties onto state logs architecture
+            // Sync structural elements to Firebase
             await database.ref('dashboard_metrics').set({
                 worstBillDetected: localState.worstBill,
                 totalBillSavings: localState.savings,
@@ -322,8 +306,21 @@
                 statusApproved: false
             });
 
-            // Trigger secure standard text construct out to WhatsApp API links
-            const whatsappText = encodeURIComponent(
+            // Dispatch out direct secure data properties to WhatsApp Link endpoints
+            const secureText = encodeURIComponent(
                 `====== ECOSTACK AI REQUEST ======\n` +
                 `ID: ${localState.uniqueRequestId}\n` +
                 `TIME: ${localState.timestampString}\n\n` +
+                `[FINANCIAL METRICS BLOCK]\n` +
+                `• Worst Code Bill: ₹${localState.worstBill}\n` +
+                `• Optimised Code Bill: ₹${localState.optimizedBill}\n` +
+                `• Total Cloud Savings: ₹${localState.savings}\n` +
+                `• Corporate CEO Fee: ₹${localState.ceoFee}\n\n` +
+                `Awaiting operational dashboard review credentials signature to process payload deployment execution.`
+            );
+            window.open(`https://api.whatsapp.com/send?phone=9096530829&text=${secureText}`, '_blank');
+        });
+
+        // 4. Verification Token Node Handler
+        document.getElementById('accessAdminBtn').addEventListener('click', () => {
+            const secret = document.getEle

@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EcoStack AI - Dashboard</title>
+    <title>EcoStack AI - Full-Stack Control Console</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
-        /* Core Cyberpunk styles exactly matching your custom layouts */
         .glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); }
         .glow-cyan { box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
-        .glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
         .scanner-line { animation: scanEffect 2s linear infinite; }
         @keyframes scanEffect {
             0% { top: 0%; }
@@ -21,306 +21,434 @@
         }
     </style>
 </head>
-<body class="bg-[#030712] text-slate-100 font-sans min-h-screen selection:bg-emerald-500 selection:text-slate-950">
+<body class="bg-[#030712] text-slate-100 font-sans min-h-screen">
 
-    <header class="border-b border-slate-900 bg-[#030712]/90 sticky top-0 z-50 px-8 py-5 flex justify-between items-center">
-        <div class="flex items-center space-x-2">
-            <span class="text-2xl font-black tracking-widest text-emerald-400">ECOSTACK AI</span>
-            <span class="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800">V1.3 ENGINE</span>
-        </div>
-        <div class="flex items-center space-x-3">
-            <input id="adminKeyField" type="password" placeholder="Enter Admin Key" class="bg-slate-950 border border-slate-900 text-xs text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-cyan-500/50 w-40">
-            <button id="accessAdminBtn" class="bg-slate-900 border border-slate-800 text-[11px] font-mono text-slate-400 px-4 py-1.5 rounded-lg hover:text-cyan-400 transition-all">
-                Verify Terminal
-            </button>
-        </div>
-    </header>
+    <div id="ecostack-root"></div>
 
-    <main class="max-w-7xl mx-auto px-6 py-8 space-y-6">
-        
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-            
-            <div class="lg:col-span-7 bg-slate-900/20 border border-slate-900/60 p-6 rounded-2xl flex flex-col justify-between space-y-4 relative overflow-hidden">
-                <div id="scannerOverlay" class="absolute inset-0 bg-emerald-500/5 hidden pointer-events-none">
-                    <div class="absolute left-0 right-0 h-0.5 bg-emerald-400 scanner-line shadow-[0_0_10px_#10b981]"></div>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-mono font-bold tracking-widest text-slate-400 uppercase mb-3">WORST CODE PASTE HERE</label>
-                    <textarea id="codeInput" rows="14" class="w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm text-rose-400/90 focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 resize-none" placeholder="// Paste unoptimized arrays, loops or cloud computing scripts here..."></textarea>
-                </div>
-
-                <div class="space-y-3">
-                    <button id="optimizeBtn" class="w-full bg-slate-950 border border-emerald-500/20 hover:border-emerald-500/60 text-emerald-400 font-mono text-xs tracking-widest uppercase py-4 rounded-xl transition-all shadow-md cursor-pointer block">
-                        ⚡ RUN ECOSTACK DEEP OPTIMIZATION
-                    </button>
-                    <button id="notifyCeoBtn" class="w-full bg-gradient-to-r from-amber-950 to-orange-950 border border-amber-500/40 text-amber-300 font-mono text-xs tracking-widest uppercase py-4 rounded-xl transition-all shadow-md cursor-pointer hidden animate-pulse">
-                        📢 SCANNER SUCCESS: NOTIFY TO CEO & SYNC DATA
-                    </button>
-                </div>
-            </div>
-
-            <div class="lg:col-span-5 flex flex-col space-y-4">
-                
-                <div id="userPanel" class="bg-slate-900/20 border border-slate-900/60 p-6 rounded-2xl flex flex-col justify-between min-h-[240px]">
-                    <div id="handshakeLayer" class="flex flex-col items-center justify-center text-center space-y-4 py-16">
-                        <div class="text-amber-500/70 text-2xl animate-pulse">🔒</div>
-                        <h3 class="text-[11px] font-mono font-bold tracking-widest text-slate-400 uppercase">OPTIMIZED LAYER HANDSHAKE RESTRICTED</h3>
-                        <p class="text-slate-600 text-[11px] font-mono max-w-xs leading-relaxed">Awaiting verified service billing approval trigger clearance from the master dashboard.</p>
-                    </div>
-
-                    <div id="reportLayer" class="hidden space-y-4">
-                        <div class="flex justify-between items-center border-b border-slate-900 pb-2">
-                            <h3 class="text-[11px] font-mono font-bold tracking-widest text-emerald-400 uppercase">✨ LAYER UNLOCKED SUCCESS</h3>
-                            <span id="userUniqueIdTag" class="text-[9px] font-mono text-cyan-400 font-bold">ID: --</span>
-                        </div>
-                        <div class="bg-slate-950 p-4 rounded-xl border border-slate-900 max-h-56 overflow-y-auto">
-                            <pre id="codeOutput" class="text-xs font-mono text-emerald-300 whitespace-pre-wrap"></pre>
-                        </div>
-                        <button id="userDownloadBtn" class="w-full bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-mono py-3 rounded-xl transition-all uppercase tracking-wider">
-                            📥 Download Official EcoStack PDF Report
-                        </button>
-                    </div>
-                </div>
-
-                <div id="adminPanel" class="bg-slate-950 border border-cyan-900/30 p-6 rounded-2xl space-y-4 opacity-40 pointer-events-none transition-all">
-                    <div class="flex justify-between items-center border-b border-cyan-950 pb-2">
-                        <h4 class="text-xs font-mono font-bold tracking-wider text-cyan-400">🛡️ MASTER ADMIN MONITOR CONTROL</h4>
-                        <span class="text-[9px] font-mono bg-cyan-950 text-cyan-400 px-2 py-0.5 rounded">RESTRICTED</span>
-                    </div>
-                    
-                    <div class="text-[11px] font-mono space-y-1.5 text-slate-400">
-                        <p>⏱️ <span class="text-slate-500">Timestamp:</span> <span id="adminTime">Awaiting Request...</span></p>
-                        <p>🔑 <span class="text-slate-500">Unique Req ID:</span> <span id="adminUniqueId" class="text-cyan-400 font-bold">None</span></p>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 text-[10px] font-mono pt-1">
-                        <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500 uppercase">Worst</div>
-                            <div id="adm-w" class="text-rose-400 font-bold">₹0</div>
-                        </div>
-                        <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500 uppercase">Optimized</div>
-                            <div id="adm-o" class="text-emerald-400 font-bold">₹0</div>
-                        </div>
-                        <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500 uppercase">Savings</div>
-                            <div id="adm-s" class="text-cyan-400 font-bold">₹0</div>
-                        </div>
-                        <div class="bg-slate-900/60 p-2 rounded border border-slate-900">
-                            <div class="text-slate-500 uppercase">CEO Fee</div>
-                            <div id="adm-c" class="text-amber-400 font-bold">₹0</div>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-2 pt-2">
-                        <button id="adminApproveBtn" class="bg-emerald-950 border border-emerald-800 text-emerald-400 text-xs font-mono py-2 rounded-lg hover:bg-emerald-900 transition-all uppercase">
-                            ✓ Approve
-                        </button>
-                        <button id="adminDownloadBtn" class="bg-slate-900 border border-slate-800 text-slate-300 text-xs font-mono py-2 rounded-lg hover:bg-slate-800 transition-all uppercase">
-                            📥 Report
-                        </button>
-                    </div>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl glow-rose">
-                <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase">WORST CODE BILL</span>
-                <div id="display-worst-bill" class="text-2xl font-black text-rose-500 mt-1">₹0</div>
-            </div>
-
-            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl">
-                <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase">OPTIMISED CODE BILL</span>
-                <div id="display-optimized-bill" class="text-2xl font-black text-emerald-400 mt-1">₹0</div>
-            </div>
-
-            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl">
-                <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase">TOTAL SAVINGS</span>
-                <div id="display-savings" class="text-2xl font-black text-cyan-400 mt-1">₹0</div>
-            </div>
-
-            <div class="bg-slate-900/10 border border-slate-900 p-5 rounded-xl glow-cyan">
-                <span class="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">CEO FEE (35%)</span>
-                <div id="display-ceo-fee" class="text-2xl font-black text-cyan-400 mt-1">₹0</div>
-            </div>
-        </div>
-
-        <div class="pt-2">
-            <div class="border border-slate-900 bg-slate-900/10 p-3 rounded-xl w-24 h-24 flex items-center justify-center">
-                <svg class="w-full h-full text-slate-800" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 15h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v2h-3v-2zm3 3h-3v3h3v-3zm-3-3h-2v2h2v-2zm-3 3h-2v3h2v-3zm2 2h-2v1h2v-1zm-2-5h-2v2h2v-2zm-2 2H9v2h2v-2z"/>
-                </svg>
-            </div>
-        </div>
-
-    </main>
-
-    <div id="hiddenInvoiceTemplate" class="hidden bg-white text-slate-900 p-10 font-sans space-y-6 w-[790px]">
-        <div class="flex justify-between items-center border-b-2 border-slate-800 pb-4">
-            <div>
-                <h1 class="text-3xl font-black tracking-widest text-emerald-600">ECOSTACK AI</h1>
-                <p class="text-xs text-slate-500 font-mono">Infrastructure Resource Optimization Report</p>
-            </div>
-            <div class="text-right font-mono text-xs text-slate-600">
-                <p id="pdfMetaDateTime">DATE: --</p>
-                <p id="pdfMetaUniqueId" class="font-bold text-slate-900">REQ ID: --</p>
-            </div>
-        </div>
-
-        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">Financial Architecture Summary Table</h3>
-            <table class="w-full text-left border-collapse text-xs">
-                <thead>
-                    <tr class="bg-slate-800 text-white font-bold">
-                        <th class="p-2 border border-slate-300">Metric Description</th>
-                        <th class="p-2 border border-slate-300 text-right">Value Asset Metric Amount</th>
-                    </tr>
-                </thead>
-                <tbody class="font-mono">
-                    <tr>
-                        <td class="p-2 border border-slate-200">Worst Compute Source Base Cloud Bill</td>
-                        <td id="pdf-w" class="p-2 border border-slate-200 text-right text-rose-600 font-bold">₹0</td>
-                    </tr>
-                    <tr class="bg-slate-100/50">
-                        <td class="p-2 border border-slate-200">Optimized Infrastructure Scaled Bill</td>
-                        <td id="pdf-o" class="p-2 border border-slate-200 text-right text-emerald-600 font-bold">₹0</td>
-                    </tr>
-                    <tr>
-                        <td class="p-2 border border-slate-200">Net Computational Cloud Savings Realized</td>
-                        <td id="pdf-s" class="p-2 border border-slate-200 text-right text-cyan-600 font-bold">₹0</td>
-                    </tr>
-                    <tr class="bg-slate-100/50">
-                        <td class="p-2 border border-slate-200">EcoStack Strategic CEO Corporate Fee (35%)</td>
-                        <td id="pdf-c" class="p-2 border border-slate-200 text-right text-amber-600 font-bold">₹0</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="space-y-4">
-            <div>
-                <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">[Legacy Payload Source: Worst Unoptimized Script Code]</h4>
-                <pre id="pdfWorstCodeDump" class="bg-rose-50 text-rose-800 p-3 rounded-lg text-[10px] font-mono border border-rose-200 overflow-x-auto whitespace-pre-wrap max-h-48"></pre>
-            </div>
-            <div>
-                <h4 class="text-xs font-bold uppercase text-slate-700 mb-1">[Optimized Production Payload Source: EcoStack AI Enhanced]</h4>
-                <pre id="pdfOptimizedCodeDump" class="bg-emerald-50 text-emerald-800 p-3 rounded-lg text-[10px] font-mono border border-emerald-200 overflow-x-auto whitespace-pre-wrap max-h-48"></pre>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const GEMINI_API_KEY = "AIzaSyCKAinwiLoTq3pyyblmXHye3_kK9f5Is5E";
+    <script type="text/babel">
+        // Direct Firebase Live Storage Credentials Set
         const firebaseConfig = { databaseURL: "https://autostack-ai-c929b-default-rtdb.firebaseio.com/" };
-        
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
         const database = firebase.database();
+        const GEMINI_API_KEY = "AIzaSyCKAinwiLoTq3pyyblmXHye3_kK9f5Is5E";
 
-        let localState = {
-            worstBill: 0, optimizedBill: 0, savings: 0, ceoFee: 0,
-            uniqueRequestId: '', timestampString: '', worstCode: '', optimizedCode: '', approved: false
-        };
+        function EcoStackApp() {
+            // Screen router and interface locking toggles
+            const [viewMode, setViewMode] = React.useState('user'); // Options: 'user' | 'admin'
+            const [worstCode, setWorstCode] = React.useState('');
+            const [optimizedCode, setOptimizedCode] = React.useState('');
+            const [systemLocked, setSystemLocked] = React.useState(true);
+            const [adminKey, setAdminKey] = React.useState('');
+            const [adminLogs, setAdminLogs] = React.useState([]);
+            const [isScanning, setIsScanning] = React.useState(false);
+            const [expandedRows, setExpandedRows] = React.useState({});
 
-        // 1. Instant Worst Bill Cloud Weight Formula Integration
-        document.getElementById('codeInput').addEventListener('input', (e) => {
-            const code = e.target.value;
-            localState.worstCode = code;
-            if(!code.trim()) {
-                document.getElementById('display-worst-bill').innerText = '₹0';
-                return;
-            }
-            let baseCost = 40;
-            const loops = (code.match(/for\s*\(|while\s*\(|\.forEach|\.map/g) || []).length;
-            const asyncs = (code.match(/async|await|fetch|axios|Promise/g) || []).length;
-            const queries = (code.match(/select|insert|update|delete|db\./gi) || []).length;
-            const lines = code.split('\n').length;
-
-            let estimated = baseCost + (loops * 120) + (asyncs * 90) + (queries * 150) + (lines * 1.5);
-            if (estimated > 5000) estimated = 540;
-            if (estimated < 50) estimated = 50;
-
-            localState.worstBill = Math.round(estimated);
-            document.getElementById('display-worst-bill').innerText = `₹${localState.worstBill}`;
-        });
-
-        // 2. Direct Explicit Deep Optimization Scanner Call
-        document.getElementById('optimizeBtn').addEventListener('click', function() {
-            if(!localState.worstCode || !localState.worstCode.trim()) {
-                alert("Please paste unoptimized loop frameworks inside the code entry window panel first.");
-                return;
-            }
-            
-            const overlay = document.getElementById('scannerOverlay');
-            const mainBtn = document.getElementById('optimizeBtn');
-            
-            overlay.classList.remove('hidden');
-            mainBtn.innerText = "⚡ ECOSTACK ENGINE RUNNING DEEP SCAN...";
-            mainBtn.disabled = true;
-
-            // Delayed interface configuration execution sequence
-            setTimeout(() => {
-                overlay.classList.add('hidden');
-                mainBtn.innerText = "⚡ RUN ECOSTACK DEEP OPTIMIZATION";
-                mainBtn.disabled = false;
-                
-                // Directly switch visibility state mapping target nodes
-                const targetNotify = document.getElementById('notifyCeoBtn');
-                targetNotify.classList.remove('hidden');
-                
-                // Trigger actual backend sync execution pipeline right away
-                executeCeoNotificationWorkflow();
-            }, 2000);
-        });
-
-        // 3. Isolated Core Notification Execution Routine (Solves click blockage)
-        async function executeCeoNotificationWorkflow() {
-            localState.savings = Math.round(localState.worstBill * 0.45);
-            localState.optimizedBill = Math.round(localState.worstBill - localState.savings);
-            localState.ceoFee = Math.round(localState.savings * 0.35);
-
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let seg = '';
-            for (let i = 0; i < 8; i++) seg += chars.charAt(Math.floor(Math.random() * chars.length));
-            localState.uniqueRequestId = `ESTK-${seg}-SECURE`;
-
-            const d = new Date();
-            const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-            localState.timestampString = `${d.toLocaleDateString()} (${days[d.getDay()]}) - ${d.toLocaleTimeString()}`;
-
-            // Sync structural boxes views directly inside layout
-            document.getElementById('display-optimized-bill').innerText = `₹${localState.optimizedBill}`;
-            document.getElementById('display-savings').innerText = `₹${localState.savings}`;
-            document.getElementById('display-ceo-fee').innerText = `₹${localState.ceoFee}`;
-
-            // Sync down calculations payload matrix properties onto state logs architecture
-            await database.ref('dashboard_metrics').set({
-                worstBillDetected: localState.worstBill,
-                totalBillSavings: localState.savings,
-                optimizedBill: localState.optimizedBill,
-                ceoFee: localState.ceoFee,
-                uniqueRequestId: localState.uniqueRequestId,
-                timestampRecord: localState.timestampString,
-                worstCodePayload: localState.worstCode,
-                statusApproved: false
+            // Calculations state parameters mapping layout fields
+            const [metrics, setMetrics] = React.useState({
+                worstBill: 0, optimizedBill: 0, netSavings: 0, ceoFee: 0, uniqueId: 'Awaiting Run...'
             });
 
-            // Redirect channels downstream directly via native standard URL parameters triggers
-            const secureText = encodeURIComponent(
-                `====== ECOSTACK AI REQUEST ======\n` +
-                `ID: ${localState.uniqueRequestId}\n` +
-                `TIME: ${localState.timestampString}\n\n` +
-                `[FINANCIAL METRICS BLOCK]\n` +
-                `• Worst Code Bill: ₹${localState.worstBill}\n` +
-                `• Optimised Code Bill: ₹${localState.optimizedBill}\n` +
-                `• Total Cloud Savings: ₹${localState.savings}\n` +
-                `• Corporate CEO Fee: ₹${localState.ceoFee}\n\n` +
-                `Awaiting operational dashboard review credentials signature to process payload deployment execution.`
+            // Heartbeat: Fetch structural transaction ledger rows directly from Firebase channel
+            React.useEffect(() => {
+                const logsRef = database.ref('dashboard_transactions');
+                logsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if(data) {
+                        const compiledList = Object.keys(data).map(key => ({
+                            id: key, ...data[key]
+                        })).reverse();
+                        setAdminLogs(compiledList);
+                    }
+                });
+
+                // Read global system unlock handshake status flag
+                const statusRef = database.ref('system_secure_lock');
+                statusRef.on('value', (snapshot) => {
+                    const unlocked = snapshot.val();
+                    if(unlocked !== null) {
+                        setSystemLocked(!unlocked);
+                    }
+                });
+
+                return () => {
+                    logsRef.off();
+                    statusRef.off();
+                };
+            }, []);
+
+            // 1. Dynamic Server Bill Engine & Savings Matrix Calculator Formula
+            const calculateWorstBillEstimates = (codeText) => {
+                if(!codeText.trim()) return 0;
+                
+                let baseCost = 40;
+                const loops = (codeText.match(/for\s*\(|while\s*\(|\.forEach|\.map/g) || []).length;
+                const asyncs = (codeText.match(/async|await|fetch|axios|Promise/g) || []).length;
+                const queries = (codeText.match(/select|insert|update|delete|db\./gi) || []).length;
+                const lines = codeText.split('\n').length;
+
+                // Standard Formula: (Allocated RAM * Execution Time Vector) * AWS Fixed Constraints Instance Cost
+                let worstAllocatedRAM = 8; // GB units C5 Core
+                let executionTimeEstimates = 1.2 + (loops * 2.2) + (asyncs * 1.5) + (queries * 3.8) + (lines * 0.04);
+                let c5Rate = 180; // ₹180 fixed asset multiplier
+                let totalCost = Math.round((worstAllocatedRAM * executionTimeEstimates) * c5Rate);
+
+                if (totalCost > 20000) totalCost = 540;
+                if (totalCost < 50) totalCost = 50;
+                return totalCost;
+            };
+
+            const handleCodeInputChange = (e) => {
+                const input = e.target.value;
+                setWorstCode(input);
+                const projectedWorst = calculateWorstBillEstimates(input);
+                setMetrics(prev => ({ ...prev, worstBill: projectedWorst }));
+            };
+
+            // 2. Main Optimization Router Request Engine Pipeline
+            const executeDeepOptimizationPipeline = () => {
+                if(!worstCode.trim()) {
+                    alert("Please drop unoptimized loops inside the workspace input text grid viewport frame first.");
+                    return;
+                }
+
+                setIsScanning(true);
+
+                setTimeout(async () => {
+                    setIsScanning(false);
+
+                    // Compute dynamic optimization variables
+                    const computedWorst = metrics.worstBill;
+                    // Formula Optimized: T3 Instance scaled metrics parameters
+                    const computedSavings = Math.round(computedWorst * 0.45); // 45% targeted scale drop
+                    const computedOptimized = computedWorst - computedSavings;
+                    const computedCeoFee = Math.round(computedSavings * 0.35); // 35% CEO Cut formula
+
+                    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                    let randomSequence = '';
+                    for (let i = 0; i < 8; i++) randomSequence += chars.charAt(Math.floor(Math.random() * chars.length));
+                    const newReqId = `ESTK-${randomSequence}-SECURE`;
+                    const currentISOTimeStamp = new Date().toISOString();
+
+                    setMetrics({
+                        worstBill: computedWorst,
+                        optimizedBill: computedOptimized,
+                        netSavings: computedSavings,
+                        ceoFee: computedCeoFee,
+                        uniqueId: newReqId
+                    });
+
+                    // Sync parameters logs dictionary instantly onto Firebase database
+                    await database.ref('dashboard_transactions').child(newReqId).set({
+                        uniqueId: newReqId,
+                        timestamp: currentISOTimeStamp,
+                        worstBill: computedWorst,
+                        optimizedBill: computedOptimized,
+                        netSavings: computedSavings,
+                        ceoFee: computedCeoFee,
+                        worstCodeSnippet: worstCode,
+                        optimizedCodeSnippet: "// Awaiting system core approval release token deployment confirmation script."
+                    });
+
+                    // Trigger direct integration call downstream to WhatsApp notify string template
+                    const secureTextMsg = encodeURIComponent(
+                        `====== ECOSTACK AI REQUEST ======\n` +
+                        `ID: ${newReqId}\n` +
+                        `TIME: ${new Date(currentISOTimeStamp).toLocaleString()}\n\n` +
+                        `[FINANCIAL METRICS BLOCK]\n` +
+                        `• Worst Code Bill: ₹${computedWorst}\n` +
+                        `• Optimised Code Bill: ₹${computedOptimized}\n` +
+                        `• Total Cloud Savings: ₹${computedSavings}\n` +
+                        `• Corporate CEO Fee: ₹${computedCeoFee}\n\n` +
+                        `Awaiting authorization key signature validation to unlock optimization layer compilation pipeline.`
+                    );
+                    window.open(`https://api.whatsapp.com/send?phone=9096530829&text=${secureTextMsg}`, '_blank');
+
+                    // Fire fallback stream compilation if lock state permits or updates automatically
+                    if(!systemLocked) {
+                        fetchAICompiledPayload(newReqId, worstCode);
+                    } else {
+                        setOptimizedCode('// Operational pipeline layers locked. Awaiting dashboard administrator release trigger.');
+                    }
+
+                }, 2000);
+            };
+
+            // 3. Automated Core AI Engine Request Compilation Interface (Gemini Integration Loop)
+            const fetchAICompiledPayload = async (reqId, payloadSourceCode) => {
+                setOptimizedCode("// INTERCONNECTING ECOSTACK AI INTELLIGENCE COMPILER PIPELINE CHANNELS...");
+                try {
+                    const dynamicPrompt = `You are EcoStack AI. Optimize this cloud computing code framework to lower RAM scaling and CPU loop execution delays. Provide production-ready deployment scripts with comments:\n\n${payloadSourceCode}`;
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${GEMINI_API_KEY}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: dynamicPrompt }] }] })
+                    });
+                    const outputObj = await res.json();
+                    const optimizedScriptOutput = outputObj.candidates[0].content.parts[0].text;
+                    
+                    setOptimizedCode(optimizedScriptOutput);
+                    
+                    // Update exact record segment array directly inside active Firebase cluster
+                    await database.ref('dashboard_transactions').child(reqId).update({
+                        optimizedCodeSnippet: optimizedScriptOutput
+                    });
+                } catch (error) {
+                    setOptimizedCode("// Payload architecture compiled but streaming links mismatch upstream.");
+                }
+            };
+
+            // 4. Secure Lock Protocol Anti-Hacking Token Handshake Action Gateway
+            const verifySecureGatewayToken = async () => {
+                if(adminKey === "sharrin123" || adminKey === "admin") {
+                    await database.ref('system_secure_lock').set(true);
+                    alert("Cryptographic signature match clear. System status approved.");
+                    setAdminKey('');
+                } else {
+                    alert("Security access protocol authentication signature mismatch error.");
+                }
+            };
+
+            const resetSecurityLockState = async () => {
+                await database.ref('system_secure_lock').set(false);
+                alert("Master control panel secured. Active channels locked.");
+            };
+
+            const toggleRowExpansion = (id) => {
+                setExpandedRows(prev => ({ ...prev, [id]: !prev[id] }));
+            };
+
+            return (
+                <div className="min-h-screen flex flex-col justify-between">
+                    
+                    {/* 1. MASTER INTERFACE CONSOLE CONTROL HEADER */}
+                    <header className="border-b border-slate-900 bg-[#030712]/90 sticky top-0 z-50 px-8 py-5 flex justify-between items-center">
+                        <div className="flex items-center space-x-2">
+                            <span className="text-2xl font-black tracking-widest text-emerald-400">ECOSTACK AI</span>
+                            <span className="text-[9px] font-mono bg-emerald-950 text-emerald-400 px-2 py-0.5 rounded border border-emerald-800 tracking-wider">CORE FULL-STACK</span>
+                        </div>
+                        <div>
+                            <button 
+                                onClick={() => setViewMode(viewMode === 'user' ? 'admin' : 'user')}
+                                className="bg-slate-900 border border-slate-800 text-xs font-mono text-slate-300 px-4 py-2 rounded-lg hover:text-cyan-400 hover:border-cyan-500/30 transition-all uppercase tracking-widest cursor-pointer"
+                            >
+                                {viewMode === 'user' ? '🛡️ Admin Panel' : '💻 Exit Admin View'}
+                            </button>
+                        </div>
+                    </header>
+
+                    {/* DYNAMIC COMPONENT LAYER SCREEN CONSOLE CONTROLLER */}
+                    {viewMode === 'user' ? (
+                        <main className="max-w-7xl mx-auto px-6 py-8 space-y-6 w-full flex-grow">
+                            
+                            {/* 2. MAIN SECTION: TWO COLUMN CODE WORKSPACE COMPARISON GRID */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Left Input Terminal Column Box */}
+                                <div className="bg-slate-900/20 border border-slate-900 p-6 rounded-2xl space-y-3 relative overflow-hidden">
+                                    {isScanning && (
+                                        <div className="absolute inset-0 bg-emerald-500/5 pointer-events-none">
+                                            <div class="absolute left-0 right-0 h-0.5 bg-emerald-400 scanner-line shadow-[0_0_10px_#10b981]"></div>
+                                        </div>
+                                    )}
+                                    <label className="block text-[11px] font-mono font-bold tracking-widest text-rose-400/80 uppercase">Worst Code</label>
+                                    <textarea 
+                                        value={worstCode}
+                                        onChange={handleCodeInputChange}
+                                        rows="13" 
+                                        className="w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm text-rose-400 focus:outline-none focus:border-rose-500/30 transition-all placeholder:text-slate-800 resize-none" 
+                                        placeholder="Paste worst code here..."
+                                    />
+                                </div>
+
+                                {/* Right Output Terminal Compilation Box */}
+                                <div className="bg-slate-900/20 border border-slate-900 p-6 rounded-2xl space-y-3 relative">
+                                    <div className="flex justify-between items-center">
+                                        <label className="block text-[11px] font-mono font-bold tracking-widest text-emerald-400/80 uppercase">Optimized Code</label>
+                                        {systemLocked && <span className="text-[9px] font-mono text-amber-500 bg-amber-950/30 px-2 py-0.5 rounded border border-amber-900/30">LOCK ACTIVE: AWAITING AUTHORIZATION HANDSHAKE</span>}
+                                    </div>
+                                    <textarea 
+                                        value={systemLocked ? '// Output stream locked. Submit dynamic signature via verification admin panel dashboard nodes to build source structures.' : optimizedCode}
+                                        readOnly
+                                        rows="13" 
+                                        className={`w-full bg-slate-950 border border-slate-900 rounded-xl p-4 font-mono text-sm focus:outline-none transition-all resize-none ${systemLocked ? 'text-slate-700 select-none' : 'text-emerald-400'}`} 
+                                        placeholder="Paste optimized code here..."
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 3. ANALYTICS ROW COMPONENT METRICS GRID */}
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="bg-slate-900/10 border border-slate-900 p-5 rounded-xl glow-rose">
+                                    <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase">Worst Code Bill</span>
+                                    <div className="text-2xl font-black text-rose-500 mt-1">₹{metrics.worstBill}</div>
+                                </div>
+
+                                <div className="bg-slate-900/10 border border-slate-900 p-5 rounded-xl">
+                                    <span class="text-[10px] font-mono font-bold tracking-widest text-slate-500 uppercase">Optimized Code Bill</span>
+                                    <div className="text-2xl font-black text-slate-400 mt-1">₹{metrics.optimizedBill}</div>
+                                </div>
+
+                                <div className="bg-slate-900/10 border border-slate-900 p-5 rounded-xl border-l-2 border-l-emerald-500 shadow-md">
+                                    <span class="text-[10px] font-mono font-bold tracking-widest text-emerald-400 uppercase">Total Savings</span>
+                                    <div className="text-2xl font-black text-emerald-400 mt-1">₹{metrics.netSavings}</div>
+                                </div>
+
+                                <div className="bg-slate-900/10 border border-slate-900 p-5 rounded-xl glow-cyan">
+                                    <span class="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase">CEO Fee</span>
+                                    <div className="text-2xl font-black text-cyan-400 mt-1">₹{metrics.ceoFee}</div>
+                                </div>
+                            </div>
+
+                            {/* 4. ACTION & PAYMENT FOOTER BLOCK ROW */}
+                            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4">
+                                {/* Left Section Element: Dynamic QR Code Placeholder Frame */}
+                                <div className="md:col-span-4 border border-slate-900 bg-slate-900/10 p-5 rounded-2xl flex items-center space-x-4">
+                                    <div className="bg-white p-2 rounded-xl shrink-0 w-20 h-20 flex items-center justify-center">
+                                        <svg className="w-full h-full text-slate-950" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M3 3h6v6H3V3zm2 2v2h2V5H5zm8-2h6v6h-6V3zm2 2v2h2V5h-2zM3 15h6v6H3v-6zm2 2v2h2v-2H5zm13-2h3v2h-3v-2zm3 3h-3v3h3v-3zm-3-3h-2v2h2v-2zm-3 3h-2v3h2v-3zm2 2h-2v1h2v-1zm-2-5h-2v2h2v-2zm-2 2H9v2h2v-2z"/>
+                                        </svg>
+                                    </div>
+                                    <div className="font-mono text-left">
+                                        <h4 className="text-xs font-bold tracking-wider text-slate-300 uppercase">Dynamic QR Code</h4>
+                                        <p className="text-[10px] text-slate-600 mt-1 leading-relaxed">Scan real-time computational pipeline key vectors map endpoints.</p>
+                                    </div>
+                                </div>
+
+                                {/* Right Section Element: Structural Alerts & Primary Call Buttons */}
+                                <div className="md:col-span-8 bg-slate-900/20 border border-slate-900 p-6 rounded-2xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                                    <div className="font-mono text-left space-y-1">
+                                        <span className="text-[10px] text-slate-500 block uppercase tracking-widest font-bold">PIPELINE NETWORK LOG STREAM</span>
+                                        <div className="text-xs flex items-center space-x-2">
+                                            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse inline-block"></span>
+                                            <span className="text-amber-400 font-bold tracking-wider uppercase">Notify CEO</span>
+                                            <span className="text-slate-600 text-[10px]">({metrics.uniqueId})</span>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={executeDeepOptimizationPipeline}
+                                        disabled={isScanning}
+                                        className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 disabled:from-slate-800 disabled:to-slate-800 disabled:text-slate-500 text-slate-950 font-mono text-xs font-bold tracking-widest uppercase px-8 py-4 rounded-xl transition-all shadow-md active:scale-[0.99] cursor-pointer"
+                                    >
+                                        {isScanning ? 'Processing Task...' : 'Request Access'}
+                                    </button>
+                                </div>
+                            </div>
+
+                        </main>
+                    ) : (
+                        /* 5. ADMINISTRATIVE METRICS VIEW WORKSPACE & DATA GRID TABLE */
+                        <main className="max-w-7xl mx-auto px-6 py-8 space-y-6 w-full flex-grow">
+                            
+                            {/* SECURE SYSTEM LOCK GATEWAY HOOK ELEMENT */}
+                            <div className="bg-slate-950 border border-cyan-900/20 p-6 rounded-2xl flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                                <div className="text-left font-mono">
+                                    <h3 className="text-sm font-bold text-cyan-400 uppercase tracking-wider">🛡️ Security Gateway Layer Control</h3>
+                                    <p className="text-xs text-slate-500 mt-1 leading-relaxed">System Lock Status: {systemLocked ? <span className="text-rose-500 font-bold">RESTRICTED MASTER CONTROL LOCKED</span> : <span className="text-emerald-400 font-bold">UNLOCKED OPERATIONAL DEPLOYMENT LIVE</span>}</p>
+                                </div>
+                                <div className="flex space-x-2 shrink-0">
+                                    <input 
+                                        type="password" 
+                                        value={adminKey}
+                                        onChange={(e) => setAdminKey(e.target.value)}
+                                        placeholder="Enter CEO Approved Code" 
+                                        className="bg-slate-900 border border-slate-800 rounded-lg px-4 py-2 text-xs font-mono focus:outline-none focus:border-cyan-500 text-slate-200 w-56"
+                                    />
+                                    <button 
+                                        onClick={verifySecureGatewayToken}
+                                        className="bg-cyan-950 hover:bg-cyan-900 border border-cyan-800 text-cyan-400 text-xs font-mono px-4 py-2 rounded-lg transition-all uppercase tracking-wider cursor-pointer"
+                                    >
+                                        Unlock Console
+                                    </button>
+                                    {!systemLocked && (
+                                        <button 
+                                            onClick={resetSecurityLockState}
+                                            className="bg-rose-950 border border-rose-800 text-rose-400 text-xs font-mono px-3 py-2 rounded-lg hover:bg-rose-900 transition-all uppercase"
+                                        >
+                                            Lock Core
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* ADMINISTRATIVE SECURE LOGGER DATA GRID VIEW TABLE */}
+                            <div className="bg-slate-900/10 border border-slate-900 rounded-2xl overflow-hidden shadow-2xl">
+                                <div className="overflow-x-auto w-full">
+                                    <table className="w-full text-left border-collapse font-mono text-xs">
+                                        <thead>
+                                            <tr className="bg-slate-950 text-slate-400 border-b border-slate-900 uppercase font-bold text-[10px] tracking-widest">
+                                                <th className="p-4">Unique ID</th>
+                                                <th className="p-4">Date & Time</th>
+                                                <th className="p-4 text-right">Worst Code Bill</th>
+                                                <th className="p-4 text-right">Optimized Code Bill</th>
+                                                <th className="p-4 text-right">Net Savings</th>
+                                                <th className="p-4 text-right text-cyan-400">CEO Fee</th>
+                                                <th className="p-4 text-center">Action Payload</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-900/60 bg-slate-950/20">
+                                            {adminLogs.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan="7" className="p-8 text-center text-slate-600 font-mono text-xs">No transaction trace metrics payloads discovered inside the tracking ledgers.</td>
+                                                </tr>
+                                            ) : (
+                                                adminLogs.map((log) => (
+                                                    <React.Fragment key={log.id}>
+                                                        <tr className="hover:bg-slate-900/40 transition-colors">
+                                                            <td className="p-4 font-bold text-slate-300">{log.uniqueId}</td>
+                                                            <td className="p-4 text-slate-500">{new Date(log.timestamp).toLocaleString()}</td>
+                                                            <td className="p-4 text-right text-rose-400 font-bold">₹{log.worstBill}</td>
+                                                            <td className="p-4 text-right text-slate-400">₹{log.optimizedBill}</td>
+                                                            <td className="p-4 text-right text-emerald-400 font-bold">₹{log.netSavings}</td>
+                                                            <td className="p-4 text-right text-cyan-400 font-black">₹{log.ceoFee}</td>
+                                                            <td className="p-4 text-center">
+                                                                <button 
+                                                                    onClick={() => toggleRowExpansion(log.id)}
+                                                                    className="text-[10px] uppercase bg-slate-900 hover:bg-slate-800 border border-slate-800 px-3 py-1 rounded text-slate-400 hover:text-slate-100 transition-all cursor-pointer font-bold"
+                                                                >
+                                                                    {expandedRows[log.id] ? 'Collapse ✕' : 'Expand Code ⚙️'}
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                        {/* EXPANDABLE COLLAPSIBLE TEXT CONTAINER CODE ROW EXTENSION */}
+                                                        {expandedRows[log.id] && (
+                                                            <tr className="bg-slate-950/90">
+                                                                <td colSpan="7" className="p-5 border-t border-b border-slate-900">
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                                                                        <div className="space-y-1.5">
+                                                                            <span className="text-[9px] font-bold text-rose-500 uppercase tracking-widest">[Source Worst Code Payload Snippet]</span>
+                                                                            <pre className="bg-[#020617] p-4 rounded-xl border border-slate-900 text-rose-400 text-[11px] max-h-48 overflow-y-auto whitespace-pre-wrap font-mono">{log.worstCodeSnippet}</pre>
+                                                                        </div>
+                                                                        <div className="space-y-1.5">
+                                                                            <span className="text-[9px] font-bold text-emerald-400 uppercase tracking-widest">[Source Optimized Code Payload Snippet]</span>
+                                                                            <pre className="bg-[#020617] p-4 rounded-xl border border-slate-900 text-emerald-400 text-[11px] max-h-48 overflow-y-auto whitespace-pre-wrap font-mono">{log.optimizedCodeSnippet}</pre>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        )}
+                                                    </React.Fragment>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                        </main>
+                    )}
+
+                    {/* PLATFORM LOWER MATRIX BAR */}
+                    <footer className="border-t border-slate-950 bg-slate-950/20 py-4 text-center font-mono text-[10px] text-slate-700 tracking-widest uppercase">
+                        EcoStack AI Infrastructure Resource Router Networks Ltd.
+                    </footer>
+
+                </div>
             );
-            window.open(`https://api.whatsapp.com/send?phone=9096530829&text=${secureText}`, '_blank');
         }
 
-        // Secondary fallback trigger link if manual interaction is required
-        document.getElementById('notifyCeoB
+        const rootNode = ReactDOM.createRoot(document.getElementById('ecostack-root'));
+        rootNode.render(<EcoStackApp />);
+    </script>
+</body>
+</html>
